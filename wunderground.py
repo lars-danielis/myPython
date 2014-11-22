@@ -45,7 +45,7 @@ labelJetzt = Label(master=frame, bg=BGCOLOR, font=("Arial", 14), fg="black", jus
 #Zeit holen, parsen und in deutscher Format wandeln
 locale.setlocale(locale.LC_ALL,'')
 zeitRoh = email.utils.parsedate_tz(aktuellData['current_observation']['observation_time_rfc822'])
-zeit = time.strftime("%A %d.%m.%Y %H:%M", time.gmtime(email.utils.mktime_tz(zeitRoh) + zeitRoh[9]))
+zeit = time.strftime("%A %H:%M", time.gmtime(email.utils.mktime_tz(zeitRoh) + zeitRoh[9]))
 
 print "lösche alte Icons"
 for filename in glob("*.gif"):
@@ -69,8 +69,8 @@ button.place(x = 460, y = 300, width = 20, height = 20)
 
 print "erzeuge Texte"
 
-jetztText = 'Aktuelle Daten von ' + zeit +'\n'
-jetztText += aktuellData['current_observation']['weather'] + " und "
+jetztText = 'Wetterdaten von ' + zeit +' Uhr.\n'
+jetztText += aktuellData['current_observation']['weather'] + " bei "
 jetztText += str(aktuellData['current_observation']['temp_c']) + u"°C gefühlt wie "
 jetztText += aktuellData['current_observation']['feelslike_c'] + u"°C.\n"
 jetztText += u'Die Luftfeuchtigkeit beträgt ' + aktuellData['current_observation']['relative_humidity'] + '.\n'
