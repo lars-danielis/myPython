@@ -35,20 +35,17 @@ alarmeData = alarme.json()
 print "baue Fenster"
 window = Tk()
 window.overrideredirect(True)
-w = window.winfo_screenwidth()
-h = window.winfo_screenheight()
-# window.geometry(str(w) + "x" + str(h) + "+0+0")
 window.geometry("480x320+0+0")
 
 frame = Frame(master=window, bg=BGCOLOR)
 
-label = Label(master=frame, bg=BGCOLOR, font=("Comic", 11), fg="black", justify=LEFT)
+label = Label(master=frame, bg=BGCOLOR, font=("Arial", 14), fg="black", justify=LEFT)
+labelJetzt = Label(master=frame, bg=BGCOLOR, font=("Arial", 14), fg="black", justify=LEFT)
 
 #Zeit holen, parsen und in deutscher Format wandeln
 locale.setlocale(locale.LC_ALL,'')
-zeitRoh = email.utils.parsedate(aktuellData['current_observation']['observation_time_rfc822'])
-zeitTime = time.mktime(zeitRoh)
-zeit = time.strftime("%A %d.%m.%Y %H:%M", time.gmtime(zeitTime))
+zeitRoh = email.utils.parsedate_tz(aktuellData['current_observation']['observation_time_rfc822'])
+zeit = time.strftime("%A %d.%m.%Y %H:%M", time.gmtime(email.utils.mktime_tz(zeitRoh) + zeitRoh[9]))
 
 print "lösche alte Icons"
 for filename in glob("*.gif"):
@@ -65,50 +62,98 @@ label2 = Label(master=frame, bg=BGCOLOR, image=imgTk)
 button = Button(master=frame, text="X", bg=BGCOLOR, fg="white", command=window.destroy)
 
 frame.pack(expand=True, fill=BOTH)
-label2.pack(expand=TRUE, side=LEFT)
-label.pack(expand=True, fill=BOTH, side=LEFT)
-button.pack(side=RIGHT, anchor=S)
+label2.place(x = 9, y = 35, width = 50, height = 50)
+labelJetzt.place(x = 60, y = 0, width = 420, height = 130)
+label.place(x = 0, y = 135, width = 480, height = 185)
+button.place(x = 460, y = 300, width = 20, height = 20)
 
 print "erzeuge Texte"
-aktuellText  = 'Heute:\n'
-aktuellText += vorhersageData['forecast']['simpleforecast']['forecastday'][0]['conditions'] + ' '
-aktuellText += vorhersageData['forecast']['simpleforecast']['forecastday'][0]['low']['celsius'] + u"°C bis "
-aktuellText += vorhersageData['forecast']['simpleforecast']['forecastday'][0]['high']['celsius'] + u"°C und "
-if aktuellData['current_observation']['precip_today_metric'] == '--':
-    aktuellText += 'trocken\n'
+
+jetztText = 'Aktuelle Daten von ' + zeit +'\n'
+jetztText += aktuellData['current_observation']['weather'] + " und "
+jetztText += str(aktuellData['current_observation']['temp_c']) + u"°C gefühlt wie "
+jetztText += aktuellData['current_observation']['feelslike_c'] + u"°C.\n"
+jetztText += u'Die Luftfeuchtigkeit beträgt ' + aktuellData['current_observation']['relative_humidity'] + '.\n'
+jetztText += 'Der Luftdruck ist mit ' + aktuellData['current_observation']['pressure_mb'] + 'mbar '
+if aktuellData['current_observation']['pressure_trend'] == '+':
+    jetztText += 'steigend.\n'
+elif aktuellData['current_observation']['pressure_trend'] == '-':
+    jetztText += 'fallend.\n'
 else:
-    aktuellText += aktuellData['current_observation']['precip_today_metric'] + "mm Niederschlag\n"
-aktuellText += astronomieData['moon_phase']['phaseofMoon']
-aktuellText += ', der Mond ist zu ' + astronomieData['moon_phase']['percentIlluminated'] + "% sichtbar\n"
-aktuellText += 'Sonenaufgang ' + astronomieData['sun_phase']['sunrise']['hour'] + \
-                  ":" + astronomieData['sun_phase']['sunrise']['minute']
-aktuellText += ', Sonnenuntergang ' + astronomieData['sun_phase']['sunset']['hour'] + \
-                  ":" + astronomieData['sun_phase']['sunset']['minute'] + '\n\n'
-aktuellText += ' Wetterdaten von: ' + zeit +"\n "
-aktuellText += aktuellData['current_observation']['weather'] + " und "
-aktuellText += str(aktuellData['current_observation']['temp_c']) + u"°C gefühlt wie "
-aktuellText += aktuellData['current_observation']['feelslike_c'] + u"°C\n"
-aktuellText += ' Luftfeuchtigkeit ' + aktuellData['current_observation']['relative_humidity'] + '\n'
-aktuellText += ' Luftdruck ' + aktuellData['current_observation']['pressure_mb'] + 'mbar Tendenz '
-aktuellText += aktuellData['current_observation']['pressure_trend'] + "\n"
+    jetztText += 'gleichbeibend.\n'
 if aktuellData['current_observation']['wind_kph'] > 0:
-    aktuellText += ' Wind aus Richtung ' + aktuellData['current_observation']['wind_dir'] + ' mit '
-    aktuellText += str(aktuellData['current_observation']['wind_kph']) + "km/h\n\n"
+    jetztText += 'Wind aus Richtung ' + aktuellData['current_observation']['wind_dir'] + ' mit '
+    jetztText += str(aktuellData['current_observation']['wind_kph']) + "km/h\n\n"
 else:
-    aktuellText += ' Windstill\n\n'
-vorhersageText  = 'Morgen ' + vorhersageData['forecast']['simpleforecast']['forecastday'][1]['conditions'] + ' '
+    jetztText += 'Es ist windstill.'
+
+heuteText  = 'Heute soll es bei '
+heuteText += vorhersageData['forecast']['simpleforecast']['forecastday'][0]['low']['celsius'] + u"°C bis "
+heuteText += vorhersageData['forecast']['simpleforecast']['forecastday'][0]['high']['celsius'] + u"°C "
+heuteText += vorhersageData['forecast']['simpleforecast']['forecastday'][0]['conditions'].lower() + ' sein und\n'
+if vorhersageData['forecast']['simpleforecast']['forecastday'][0]['snow_allday']['cm'] == 0.0:
+    if vorhersageData['forecast']['simpleforecast']['forecastday'][0]['qpf_allday']['mm'] == 0:
+        heuteText += 'es soll trocken bleiben.\n'
+    else:
+        heuteText += str(vorhersageData['forecast']['simpleforecast']['forecastday'][0]['qpf_allday']['mm'])
+        heuteText += 'mm Regen geben.\n'
+else:
+    heuteText += str(vorhersageData['forecast']['simpleforecast']['forecastday'][0]['snow_allday']['cm'])
+    heuteText += 'cm Schnee geben.\n'
+if astronomieData['moon_phase']['percentIlluminated'] == u'0':
+    heuteText += 'Der Mond ist als Neumond nicht sichtbar.\n'
+elif astronomieData['moon_phase']['percentIlluminated'] == u'100':
+    heuteText += 'Es ist Vollmond.\n'
+else:
+    heuteText += astronomieData['moon_phase']['phaseofMoon']
+    heuteText += ' vom Mond der '
+    heuteText += 'zu ' + astronomieData['moon_phase']['percentIlluminated'] + '% '
+    heuteText += 'sichtbar ist.\n'
+heuteText += 'Die Sonne geht ' + astronomieData['sun_phase']['sunrise']['hour'] + \
+                  ":" + astronomieData['sun_phase']['sunrise']['minute']
+heuteText += ' Uhr auf und ' + astronomieData['sun_phase']['sunset']['hour'] + \
+                  ":" + astronomieData['sun_phase']['sunset']['minute'] + ' Uhr unter.\n\n'
+
+vorhersageText  = 'Morgen ' + vorhersageData['forecast']['simpleforecast']['forecastday'][1]['conditions'].lower() + ', bei '
 vorhersageText += vorhersageData['forecast']['simpleforecast']['forecastday'][1]['low']['celsius'] + u"°C bis "
-vorhersageText += vorhersageData['forecast']['simpleforecast']['forecastday'][1]['high']['celsius'] + u"°C\n"
+vorhersageText += vorhersageData['forecast']['simpleforecast']['forecastday'][1]['high']['celsius'] + u"°C und "
+if vorhersageData['forecast']['simpleforecast']['forecastday'][1]['snow_allday']['cm'] == 0.0:
+    if vorhersageData['forecast']['simpleforecast']['forecastday'][1]['qpf_allday']['mm'] == 0:
+        vorhersageText += 'trocken.\n'
+    else:
+        vorhersageText += str(vorhersageData['forecast']['simpleforecast']['forecastday'][1]['qpf_allday']['mm'])
+        vorhersageText += 'mm Regen.\n'
+else:
+    vorhersageText += str(vorhersageData['forecast']['simpleforecast']['forecastday'][1]['snow_allday']['cm'])
+    vorhersageText += 'cm Schnee.\n'
 vorhersageText += vorhersageData['forecast']['simpleforecast']['forecastday'][2]['date']['weekday'] + ' '
-vorhersageText += vorhersageData['forecast']['simpleforecast']['forecastday'][2]['conditions'] + ' '
+vorhersageText += vorhersageData['forecast']['simpleforecast']['forecastday'][2]['conditions'].lower() + ', bei '
 vorhersageText += vorhersageData['forecast']['simpleforecast']['forecastday'][2]['low']['celsius'] + u"°C bis "
-vorhersageText += vorhersageData['forecast']['simpleforecast']['forecastday'][2]['high']['celsius'] + u"°C\n"
+vorhersageText += vorhersageData['forecast']['simpleforecast']['forecastday'][2]['high']['celsius'] + u"°C und "
+if vorhersageData['forecast']['simpleforecast']['forecastday'][2]['snow_allday']['cm'] == 0.0:
+    if vorhersageData['forecast']['simpleforecast']['forecastday'][2]['qpf_allday']['mm'] == 0:
+        vorhersageText += 'trocken.\n'
+    else:
+        vorhersageText += str(vorhersageData['forecast']['simpleforecast']['forecastday'][2]['qpf_allday']['mm'])
+        vorhersageText += 'mm Regen.\n'
+else:
+    vorhersageText += str(vorhersageData['forecast']['simpleforecast']['forecastday'][2]['snow_allday']['cm'])
+    vorhersageText += 'cm Schnee.\n'
 vorhersageText += vorhersageData['forecast']['simpleforecast']['forecastday'][3]['date']['weekday'] + ' '
-vorhersageText += vorhersageData['forecast']['simpleforecast']['forecastday'][3]['conditions'] + ' '
+vorhersageText += vorhersageData['forecast']['simpleforecast']['forecastday'][3]['conditions'].lower() + ', bei '
 vorhersageText += vorhersageData['forecast']['simpleforecast']['forecastday'][3]['low']['celsius'] + u"°C bis "
-vorhersageText += vorhersageData['forecast']['simpleforecast']['forecastday'][3]['high']['celsius'] + u"°C\n"
+vorhersageText += vorhersageData['forecast']['simpleforecast']['forecastday'][3]['high']['celsius'] + u"°C und "
+if vorhersageData['forecast']['simpleforecast']['forecastday'][3]['snow_allday']['cm'] == 0.0:
+    if vorhersageData['forecast']['simpleforecast']['forecastday'][3]['qpf_allday']['mm'] == 0:
+        vorhersageText += 'trocken.\n'
+    else:
+        vorhersageText += str(vorhersageData['forecast']['simpleforecast']['forecastday'][3]['qpf_allday']['mm'])
+        vorhersageText += 'mm Regen.\n'
+else:
+    vorhersageText += str(vorhersageData['forecast']['simpleforecast']['forecastday'][3]['snow_allday']['cm'])
+    vorhersageText += 'cm Schnee.\n'
 
-label.config(text=aktuellText + vorhersageText)
-
+label.config(text=heuteText + vorhersageText)
+labelJetzt.config(text=jetztText)
 print "zeige Fenster"
 window.mainloop()
