@@ -116,7 +116,7 @@ elif astronomieData['moon_phase']['percentIlluminated'] == u'100':
 else:
     heuteText += astronomieData['moon_phase']['phaseofMoon'] + ', der Mond ist zu '
     heuteText += astronomieData['moon_phase']['percentIlluminated'] + '% '
-    heuteText += 'sichtbar ist.\n'
+    heuteText += 'sichtbar.\n'
 heuteText += 'Die Sonne geht ' + astronomieData['sun_phase']['sunrise']['hour'] + \
                   ":" + astronomieData['sun_phase']['sunrise']['minute']
 heuteText += ' Uhr auf und ' + astronomieData['sun_phase']['sunset']['hour'] + \
