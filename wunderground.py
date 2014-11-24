@@ -13,7 +13,7 @@ from PIL import Image, ImageTk
 
 BGCOLOR = "white"
 WEISS = "#FFF"
-SCHRIFTGROESSE = 11
+SCHRIFTGROESSE = 14
 
 # Wunderground JSON-Daten holen
 print "hole aktuelle Werte"
@@ -75,7 +75,7 @@ print "baue Fenster"
 window = Tk()
 window.overrideredirect(True)
 window.geometry("480x320+0+0")
-imgIj = PhotoImage(filenameIj)                               # Icon-Datei öffnen
+imgIj = PhotoImage(file=filenameIj)                               # Icon-Datei öffnen
 
 #imgTkIj = ImageTk.PhotoImage(imgIj)                          # Icon-Datei in Grafikobjekt laden
 imgTkI0 = ImageTk.PhotoImage(imgI0)                          # Icon-Datei in Grafikobjekt laden
@@ -95,10 +95,10 @@ labelI1 = Label(master=frame, bg=BGCOLOR, image=imgTkI1)    # Grafikobjekt in La
 labelI2 = Label(master=frame, bg=BGCOLOR, image=imgTkI2)    # Grafikobjekt in Label einbauen
 labelI3 = Label(master=frame, bg=BGCOLOR, image=imgTkI3)    # Grafikobjekt in Label einbauen
 
-Tj = Text(window)
+Tj = Text(window, relief = 'flat', bd = 0)
 Tj.tag_configure('Ueberschrift', font=("Arial", SCHRIFTGROESSE + 1, 'bold'))
 Tj.tag_configure('normal', font=("Arial", SCHRIFTGROESSE))
-Tj.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 1))
+Tj.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2))
 Tj.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue')
 T0 = Text(window)
 T0.tag_configure('Ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'))
@@ -126,7 +126,7 @@ button = Button(master=frame, text="X", bg=BGCOLOR, fg="white", command=window.d
 
 # Labels in Fenster einbauen und anordnen
 frame.pack(expand=True, fill=BOTH)
-Tj.place(x = 0, y = 0, width = 475, height = 135)
+Tj.place(x = 0, y = 0, width = 480, height = 135)
 labelT0.place(x = 9, y = 135, width = 475, height = 80)
 labelT1.place(x = 9, y = 230, width = 150, height = 80)
 labelT2.place(x = 169, y = 230, width = 150, height = 80)
