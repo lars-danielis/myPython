@@ -11,9 +11,11 @@ import os
 from Tkinter import *
 from PIL import Image, ImageTk
 
-BGCOLOR = "#ddd"#"white"
+BGCOLOR = "white"
 WEISS = "#FFF"
-SCHRIFTGROESSE = 11
+SCHRIFTGROESSE = 14
+
+locale.setlocale(locale.LC_ALL,'')
 
 # Wunderground JSON-Daten holen
 print "hole aktuelle Werte"
@@ -33,7 +35,6 @@ astD = ast.json()
 alD = al.json()
 
 # Zeitstempel der Wetterdaten holen, parsen und in deutsches Format wandeln
-locale.setlocale(locale.LC_ALL,'')
 zeitRoh = email.utils.parsedate_tz(aktD['current_observation']['observation_time_rfc822'])
 TjWTag = time.strftime("%A", time.gmtime(email.utils.mktime_tz(zeitRoh) + zeitRoh[9]))
 TjZeit = time.strftime("%H:%M", time.gmtime(email.utils.mktime_tz(zeitRoh) + zeitRoh[9]))
