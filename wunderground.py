@@ -13,7 +13,7 @@ from PIL import Image, ImageTk
 
 BGCOLOR = "white"
 WEISS = "#FFF"
-SCHRIFTGROESSE = 14
+SCHRIFTGROESSE = 11
 
 locale.setlocale(locale.LC_ALL,'')
 
@@ -79,15 +79,18 @@ imgI3 = PhotoImage(file = filenameI3)                               # Icon-Datei
 Tj = Text(window, relief = 'flat', bd = 0, bg = BGCOLOR)
 TjI = Text(window, relief = 'flat', bd = 0)
 TjI.image_create(END, image=imgIj)
-Tj.tag_configure('Ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'))
-Tj.tag_configure('normal', font=("Arial", SCHRIFTGROESSE))
-Tj.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2))
-Tj.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue')
+Tj.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'), tabs = ('1c', CENTER))
+Tj.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('1,8c', NUMERIC) )
+Tj.tag_configure('tempHeiss', font=("Arial", SCHRIFTGROESSE+4, 'bold'), foreground ='red', tabs = ('1,8c', NUMERIC) )
+Tj.tag_configure('tempKalt', font=("Arial", SCHRIFTGROESSE+4, 'bold'), foreground ='blue', tabs = ('1,8c', NUMERIC) )
+Tj.tag_configure('tempNormal', font=("Arial", SCHRIFTGROESSE+4, 'bold'), tabs = ('1,8c', NUMERIC) )
+Tj.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('1,8c', NUMERIC))
+Tj.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue', tabs = ('1,8c', NUMERIC))
 
 T0 = Text(window, relief = 'flat', bd = 0, bg = BGCOLOR)
 T0I = Text(window, relief = 'flat', bd = 0)
 T0I.image_create(END, image=imgI0)
-T0.tag_configure('Ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'))
+T0.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'))
 T0.tag_configure('normal', font=("Arial", SCHRIFTGROESSE))
 T0.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2))
 T0.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue')
@@ -95,7 +98,7 @@ T0.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue')
 T1 = Text(window, relief = 'flat', bd = 0, bg = BGCOLOR)
 T1I = Text(window, relief = 'flat', bd = 0)
 T1I.image_create(END, image=imgI1)
-T1.tag_configure('Ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'))
+T1.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'))
 T1.tag_configure('normal', font=("Arial", SCHRIFTGROESSE))
 T1.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2))
 T1.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue')
@@ -103,7 +106,7 @@ T1.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue')
 T2 = Text(window, relief = 'flat', bd = 0, bg = BGCOLOR)
 T2I = Text(window, relief = 'flat', bd = 0)
 T2I.image_create(END, image=imgI2)
-T2.tag_configure('Ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'))
+T2.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'))
 T2.tag_configure('normal', font=("Arial", SCHRIFTGROESSE))
 T2.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2))
 T2.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue')
@@ -111,7 +114,7 @@ T2.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue')
 T3 = Text(window, relief = 'flat', bd = 0, bg = BGCOLOR)
 T3I = Text(window, relief = 'flat', bd = 0)
 T3I.image_create(END, image=imgI3)
-T3.tag_configure('Ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'))
+T3.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'))
 T3.tag_configure('normal', font=("Arial", SCHRIFTGROESSE))
 T3.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2))
 T3.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue')
@@ -125,7 +128,7 @@ T0.place(x = 0, y = 135, width = 480, height = 95)
 T1.place(x = 0, y = 230, width = 160, height = 90)
 T2.place(x = 160, y = 230, width = 160, height = 90)
 T3.place(x = 320, y = 230, width = 160, height = 90)
-TjI.place(x = 0, y = 15, width = 50, height = 50)
+TjI.place(x = 100, y = 15, width = 50, height = 50)
 T0I.place(x = 0, y = 150, width = 50, height = 50)
 T1I.place(x = 0, y = 245, width = 50, height = 50)
 T2I.place(x = 160, y = 245, width = 50, height = 50)
@@ -134,12 +137,18 @@ button.place(x = 460, y = 300, width = 20, height = 20)
 
 print "erzeuge Texte"
 # Wetter jetzt
-Tj.insert(INSERT, TjWTag, 'Ueberschrift')
+Tj.insert(INSERT, '\t' + TjWTag, 'ueberschrift')
 Tj.insert(INSERT, ' letzte Aktualisierung ' + TjZeit +' Uhr\n', 'zusatz')
-Tj.insert(END, '\t' + str(aktD['current_observation']['temp_c']) + u"°C gefühlt wie ", 'normal')
-Tj.insert(END, aktD['current_observation']['feelslike_c'] + u"°C\n", 'normal')
+if aktD['current_observation']['temp_c'] > 20:
+    Tj.insert(END, '\t' + str(aktD['current_observation']['temp_c']) + u"°C ", 'tempHeiss')
+elif aktD['current_observation']['temp_c'] < 0:
+    Tj.insert(END, '\t' + str(aktD['current_observation']['temp_c']) + u"°C ", 'tempKalt')
+else:
+    Tj.insert(END, '\t' + str(aktD['current_observation']['temp_c']) + u"°C ", 'tempNormal')
+
+Tj.insert(END,   u'fühlt sich an wie ' + aktD['current_observation']['feelslike_c'] + u"°C\n", 'zusatz')
 # Luftfeuchtigkeit jetzt
-Tj.insert(END, '\t' + 'Feuchtigkeit ', 'normal')
+Tj.insert(END, '\t', 'normal')
 Tj.insert(END, aktD['current_observation']['relative_humidity'] + '\n', 'blau')
 # Luftdruck jetzt und Tendenz
 Tj.insert(END, 'Luftdruck ' + aktD['current_observation']['pressure_mb'] + 'mbar ', 'normal')
@@ -157,7 +166,7 @@ else:
     Tj.insert(END, 'Es ist windstill', 'zusatz')
 
 # Vorhersage heute
-T0.insert(INSERT, 'Heute\n', 'Ueberschrift')
+T0.insert(INSERT, 'Heute\n', 'ueberschrift')
 T0.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][0]['high']['celsius'] + u"°C\t",'normal')
 # Mond heute
 if astD['moon_phase']['percentIlluminated'] == u'0':
@@ -183,7 +192,7 @@ else:
     T0.insert(END, 'cm Schnee','normal')
 
 # Vorhersage morgen
-T1.insert(INSERT, 'Morgen\n', 'Ueberschrift')
+T1.insert(INSERT, 'Morgen\n', 'ueberschrift')
 T1.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][1]['high']['celsius'] + u"°C\n", 'normal')
 T1.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][1]['low']['celsius'] + u"°C\n", 'normal')
 if vorD['forecast']['simpleforecast']['forecastday'][1]['snow_allday']['cm'] == 0.0:
@@ -197,7 +206,7 @@ else:
     T1.insert(END, 'cm Schnee.', 'normal')
 
 # Vorhersage übermorgen
-T2.insert(INSERT, vorD['forecast']['simpleforecast']['forecastday'][2]['date']['weekday'] + '\n', 'Ueberschrift')
+T2.insert(INSERT, vorD['forecast']['simpleforecast']['forecastday'][2]['date']['weekday'] + '\n', 'ueberschrift')
 T2.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][2]['high']['celsius'] + u"°C\n", 'normal')
 T2.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][2]['low']['celsius'] + u"°C\n", 'normal')
 if vorD['forecast']['simpleforecast']['forecastday'][2]['snow_allday']['cm'] == 0.0:
@@ -211,7 +220,7 @@ else:
     T2.insert(END, 'cm Schnee.', 'normal')
 
 # Vorhersage überübermorgen
-T3.insert(INSERT, vorD['forecast']['simpleforecast']['forecastday'][3]['date']['weekday'] + '\n', 'Ueberschrift')
+T3.insert(INSERT, vorD['forecast']['simpleforecast']['forecastday'][3]['date']['weekday'] + '\n', 'ueberschrift')
 T3.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][3]['high']['celsius'] + u"°C\n", 'normal')
 T3.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][3]['low']['celsius'] + u"°C\n", 'normal')
 if vorD['forecast']['simpleforecast']['forecastday'][3]['snow_allday']['cm'] == 0.0:
