@@ -13,7 +13,7 @@ from PIL import Image, ImageTk
 
 BGCOLOR = "white"
 WEISS = "#FFF"
-SCHRIFTGROESSE = 11
+SCHRIFTGROESSE = 14
 
 locale.setlocale(locale.LC_ALL,'')
 
@@ -71,13 +71,13 @@ window.overrideredirect(True)
 window.geometry("480x320+0+0")
 
 imgIj = PhotoImage(file = filenameIj)                               # Icon-Datei öffnen
-mondI = PhotoImage(file = '.\\mond.pgm')
-sonneI = PhotoImage(file = '.\\sonne.pgm')
-tropfenI = PhotoImage(file = '.\\tropfen.pgm')
-druckI = PhotoImage(file = '.\\druck.pgm')
-windI = PhotoImage(file = '.\\wind.pgm')
-schneeI = PhotoImage(file = '.\\schnee.pgm')
-regenI = PhotoImage(file = '.\\regen.pgm')
+mondI = PhotoImage(file = './mond.pgm')
+sonneI = PhotoImage(file = './sonne.pgm')
+tropfenI = PhotoImage(file = './tropfen.pgm')
+druckI = PhotoImage(file = './druck.pgm')
+windI = PhotoImage(file = './wind.pgm')
+schneeI = PhotoImage(file = './schnee.pgm')
+regenI = PhotoImage(file = './regen.pgm')
 imgI0 = PhotoImage(file = filenameI0)                               # Icon-Datei öffnen
 imgI1 = PhotoImage(file = filenameI1)                               # Icon-Datei öffnen
 imgI2 = PhotoImage(file = filenameI2)                               # Icon-Datei öffnen
@@ -86,22 +86,22 @@ imgI3 = PhotoImage(file = filenameI3)                               # Icon-Datei
 Tj = Text(window, relief = 'flat', bd = 0, bg = BGCOLOR)
 TjI = Text(window, relief = 'flat', bd = 0)
 TjI.image_create(END, image=imgIj)
-Tj.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), tabs = ('1c', CENTER, '20c', LEFT))
+Tj.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), tabs = ('1c', CENTER))
 Tj.tag_configure('zusatzUeb', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('1c', CENTER, '20c', LEFT))
-Tj.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('1,9c'))
-Tj.tag_configure('tempHeiss', font=("Arial", SCHRIFTGROESSE + 7, 'bold'), foreground ='darkred', tabs = ('1,9c'))
-Tj.tag_configure('tempKalt', font=("Arial", SCHRIFTGROESSE + 7, 'bold'), foreground ='darkblue', tabs = ('1,9c'))
-Tj.tag_configure('tempNormal', font=("Arial", SCHRIFTGROESSE + 7, 'bold'), foreground ='darkgreen', tabs = ('1,9c'))
-Tj.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('1,9c'))
-Tj.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue', tabs = ('1,9c'))
+Tj.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('2,5c'))
+Tj.tag_configure('tempHeiss', font=("Arial", SCHRIFTGROESSE + 7, 'bold'), foreground ='darkred', tabs = ('2,5c'))
+Tj.tag_configure('tempKalt', font=("Arial", SCHRIFTGROESSE + 7, 'bold'), foreground ='darkblue', tabs = ('2,5c'))
+Tj.tag_configure('tempNormal', font=("Arial", SCHRIFTGROESSE + 7, 'bold'), foreground ='darkgreen', tabs = ('2,5c'))
+Tj.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,5c'))
+Tj.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue', tabs = ('2,5c'))
 
 T0 = Text(window, relief = 'flat', bd = 0, bg = BGCOLOR)
 T0I = Text(window, relief = 'flat', bd = 0)
 T0I.image_create(END, image=imgI0)
-T0.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'))
-T0.tag_configure('normal', font=("Arial", SCHRIFTGROESSE))
-T0.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2))
-T0.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue')
+T0.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'), tabs = ('2,5c', '6c'))
+T0.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('2,5c', '6c'))
+T0.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,5c', '6c'))
+T0.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue', tabs = ('2,5c', '6c'))
 
 T1 = Text(window, relief = 'flat', bd = 0, bg = BGCOLOR)
 T1I = Text(window, relief = 'flat', bd = 0)
@@ -132,12 +132,12 @@ button = Button(master=window, text="X", bg=BGCOLOR, fg="white", command=window.
 
 # Labels in Fenster einbauen und anordnen
 Tj.place(x = 0, y = 0, width = 480, height = 135)
-T0.place(x = 0, y = 135, width = 480, height = 95)
+T0.place(x = 0, y = 130, width = 480, height = 100)
 T1.place(x = 0, y = 230, width = 160, height = 90)
 T2.place(x = 160, y = 230, width = 160, height = 90)
 T3.place(x = 320, y = 230, width = 160, height = 90)
-TjI.place(x = 25, y = 35, width = 50, height = 50)
-T0I.place(x = 0, y = 150, width = 50, height = 50)
+TjI.place(x = 25, y = 50, width = 50, height = 50)
+T0I.place(x = 25, y = 160, width = 50, height = 50)
 T1I.place(x = 0, y = 245, width = 50, height = 50)
 T2I.place(x = 160, y = 245, width = 50, height = 50)
 T3I.place(x = 320, y = 245, width = 50, height = 50)
@@ -146,7 +146,7 @@ button.place(x = 460, y = 300, width = 20, height = 20)
 print "erzeuge Texte"
 # Wetter jetzt
 Tj.insert(INSERT, '\t' + TjWTag, 'ueberschrift')
-Tj.insert(INSERT, '\tletzte Aktualisierung ' + TjZeit +' Uhr\n', 'zusatz')
+Tj.insert(INSERT, '  letzte Aktualisierung ' + TjZeit +' Uhr\n', 'zusatz')
 if aktD['current_observation']['temp_c'] > 20:
     Tj.insert(END, '\t' + str(aktD['current_observation']['temp_c']) + u"°C ", 'tempHeiss')
 elif aktD['current_observation']['temp_c'] < 0:
@@ -163,7 +163,7 @@ Tj.insert(END, ' ' + aktD['current_observation']['relative_humidity'] + '\n', 'n
 # Luftdruck jetzt und Tendenz
 Tj.insert(END, '\t', 'normal')
 Tj.image_create(END, image=druckI)
-Tj.insert(END, '  ' + aktD['current_observation']['pressure_mb'] + 'mbar ', 'zusatz')
+Tj.insert(END, ' ' + aktD['current_observation']['pressure_mb'] + 'mbar ', 'zusatz')
 if aktD['current_observation']['pressure_trend'] == '+':
     Tj.insert(END,'steigend\n', 'zusatz')
 elif aktD['current_observation']['pressure_trend'] == '-':
@@ -181,31 +181,36 @@ else:
     Tj.insert(END, ' 0 km/h', 'zusatz')
 
 # Vorhersage heute
-T0.insert(INSERT, 'Heute\n', 'ueberschrift')
-T0.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][0]['high']['celsius'] + u"°C\t",'normal')
+T0.insert(INSERT, u' Vorhersage für heute\n', 'ueberschrift')
+T0.insert(END, ' ','normal')
 # Mond heute
+T0.insert(END, '\t\t', 'zusatz')
 T0.image_create(END, image = mondI)
 if astD['moon_phase']['percentIlluminated'] == u'0':
-    T0.insert(END, ' Neumond\n', 'normal')
+    T0.insert(END, ' Neumond\n', 'zusatz')
 elif astD['moon_phase']['percentIlluminated'] == u'100':
-    T0.insert(END, ' Vollmond\n','normal')
+    T0.insert(END, ' Vollmond\n','zusatz')
 else:
-    T0.insert(END, ' ' + astD['moon_phase']['phaseofMoon'] + ' ', 'normal')
-    T0.insert(END, astD['moon_phase']['percentIlluminated'] + '% ', 'normal')
-    T0.insert(END, 'vom Mondsichtbar\n','normal')
-T0.insert(END, '\t' +  vorD['forecast']['simpleforecast']['forecastday'][0]['low']['celsius'] + u"°C\t", 'normal')
+    T0.insert(END, ' ' + astD['moon_phase']['percentIlluminated'] + '%\n', 'zusatz')
+# Temperaturen
+T0.insert(END, '\t' +  vorD['forecast']['simpleforecast']['forecastday'][0]['low']['celsius'] + u"°C - ", 'normal')
+T0.insert(END, ' ' + vorD['forecast']['simpleforecast']['forecastday'][0]['high']['celsius'] + u"°C",'normal')
+# Sonne
+T0.insert(END, '\t', 'zusatz')
 T0.image_create(END, image= sonneI)
-T0.insert(END, ' ' + astD['sun_phase']['sunrise']['hour'] + ":"+astD['sun_phase']['sunrise']['minute'], 'normal')
-T0.insert(END, ' - ' + astD['sun_phase']['sunset']['hour'] + ":" + astD['sun_phase']['sunset']['minute']+'\n', 'normal')
+T0.insert(END, ' ' + astD['sun_phase']['sunrise']['hour'] + ":"+astD['sun_phase']['sunrise']['minute'], 'zusatz')
+T0.insert(END, ' - ' + astD['sun_phase']['sunset']['hour'] + ":" + astD['sun_phase']['sunset']['minute']+'\n', 'zusatz')
 # Niederschlag heute
 if vorD['forecast']['simpleforecast']['forecastday'][0]['snow_allday']['cm'] == 0.0:
+    T0.insert(END, '\t\t', 'zusatz')
     T0.image_create(END, image = regenI)
-    T0.insert(END, str(vorD['forecast']['simpleforecast']['forecastday'][0]['qpf_allday']['mm']),'normal')
-    T0.insert(END, 'mm','normal')
+    T0.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][0]['qpf_allday']['mm']),'zusatz')
+    T0.insert(END, 'mm','zusatz')
 else:
+    T0.insert(END, '\t\t', 'zusatz')
     T0.image_create(END, image = schneeI)
-    T0.insert(END, str(vorD['forecast']['simpleforecast']['forecastday'][0]['snow_allday']['cm']),'normal')
-    T0.insert(END, 'cm Schnee','normal')
+    T0.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][0]['snow_allday']['cm']),'zusatz')
+    T0.insert(END, 'cm Schnee','zusatz')
 
 # Vorhersage morgen
 T1.insert(INSERT, 'Morgen\n', 'ueberschrift')
@@ -213,12 +218,12 @@ T1.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][1]['high
 T1.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][1]['low']['celsius'] + u"°C\n", 'normal')
 if vorD['forecast']['simpleforecast']['forecastday'][1]['snow_allday']['cm'] == 0.0:
     T1.image_create(END, image = regenI)
-    T1.insert(END, str(vorD['forecast']['simpleforecast']['forecastday'][1]['qpf_allday']['mm']),'normal')
-    T1.insert(END, 'mm','normal')
+    T1.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][1]['qpf_allday']['mm']),'zusatz')
+    T1.insert(END, 'mm','zusatz')
 else:
     T1.image_create(END, image = schneeI)
-    T1.insert(END, str(vorD['forecast']['simpleforecast']['forecastday'][1]['snow_allday']['cm']),'normal')
-    T1.insert(END, 'cm Schnee','normal')
+    T1.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][1]['snow_allday']['cm']),'zusatz')
+    T1.insert(END, 'cm Schnee','zusatz')
 
 # Vorhersage übermorgen
 T2.insert(INSERT, vorD['forecast']['simpleforecast']['forecastday'][2]['date']['weekday'] + '\n', 'ueberschrift')
@@ -226,12 +231,12 @@ T2.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][2]['high
 T2.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][2]['low']['celsius'] + u"°C\n", 'normal')
 if vorD['forecast']['simpleforecast']['forecastday'][2]['snow_allday']['cm'] == 0.0:
     T2.image_create(END, image = regenI)
-    T2.insert(END, str(vorD['forecast']['simpleforecast']['forecastday'][2]['qpf_allday']['mm']),'normal')
-    T2.insert(END, 'mm','normal')
+    T2.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][2]['qpf_allday']['mm']),'zusatz')
+    T2.insert(END, 'mm','zusatz')
 else:
     T2.image_create(END, image = schneeI)
-    T2.insert(END, str(vorD['forecast']['simpleforecast']['forecastday'][2]['snow_allday']['cm']),'normal')
-    T2.insert(END, 'cm Schnee','normal')
+    T2.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][2]['snow_allday']['cm']),'zusatz')
+    T2.insert(END, 'cm Schnee','zusatz')
 
 # Vorhersage überübermorgen
 T3.insert(INSERT, vorD['forecast']['simpleforecast']['forecastday'][3]['date']['weekday'] + '\n', 'ueberschrift')
@@ -239,12 +244,12 @@ T3.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][3]['high
 T3.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][3]['low']['celsius'] + u"°C\n", 'normal')
 if vorD['forecast']['simpleforecast']['forecastday'][3]['snow_allday']['cm'] == 0.0:
     T3.image_create(END, image = regenI)
-    T3.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][3]['qpf_allday']['mm']),'normal')
-    T3.insert(END, 'mm','normal')
+    T3.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][3]['qpf_allday']['mm']),'zusatz')
+    T3.insert(END, 'mm','zusatz')
 else:
     T3.image_create(END, image = schneeI)
-    T3.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][3]['snow_allday']['cm']),'normal')
-    T3.insert(END, 'cm Schnee','normal')
+    T3.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][3]['snow_allday']['cm']),'zusatz')
+    T3.insert(END, 'cm Schnee','zusatz')
 
 # Fensterloop
 print "zeige Fenster"
