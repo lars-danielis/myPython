@@ -14,7 +14,7 @@ import thread
 
 BGCOLOR = "white"
 WEISS = "#FFF"
-SCHRIFTGROESSE = 14
+SCHRIFTGROESSE = 13
 
 locale.setlocale(locale.LC_ALL,'')
 
@@ -28,6 +28,7 @@ frame.place(x=0,y=0,width=480,height=320)
 
 # Beenden Knopf
 button = Button(master=window, text="X", bg=BGCOLOR, fg="white", command=window.destroy)
+button.place(x = 460, y = 300, width = 20, height = 20)
 
 # konstante Icons laden
 mondI0 = PhotoImage(file = './mond04.pgm')
@@ -66,10 +67,10 @@ def ZeitLoop():
 
             # JSON-Strukturen parsen und anlegen
             print "verarbeite JSON"
-            aktD = akt.json()
-            vorD = vor.json()
-            astD = ast.json()
-            alD = al.json()
+            aktD = akt.json
+            vorD = vor.json
+            astD = ast.json
+            alD = al.json
 
             # Zeitstempel der Wetterdaten holen, parsen und in deutsches Format wandeln
             zeitRoh = email.utils.parsedate_tz(aktD['current_observation']['observation_time_rfc822'])
@@ -83,23 +84,23 @@ def ZeitLoop():
                 os.remove(filename)
             print "hole Icons"
             iconUrlIj = aktD['current_observation']['icon_url'] # IconUrl holen
-            iconUrlIj = iconUrlIj.replace("/k/", "/j/")                  # Art des Icons tauschen
+            iconUrlIj = iconUrlIj.replace("/k/", "/a/")                  # Art des Icons tauschen
             filenameIj = wget.download(iconUrlIj)                        # Icon dowloaden
 
             iconUrlI0 = vorD['forecast']['simpleforecast']['forecastday'][0]['icon_url'] # IconUrl holen
-            iconUrlI0 = iconUrlI0.replace("/k/", "/j/")                  # Art des Icons tauschen
+            iconUrlI0 = iconUrlI0.replace("/k/", "/a/")                  # Art des Icons tauschen
             filenameI0 = wget.download(iconUrlI0)                        # Icon dowloaden
 
             iconUrlI1 = vorD['forecast']['simpleforecast']['forecastday'][1]['icon_url'] # IconUrl holen
-            iconUrlI1 = iconUrlI1.replace("/k/", "/j/")                  # Art des Icons tauschen
+            iconUrlI1 = iconUrlI1.replace("/k/", "/a/")                  # Art des Icons tauschen
             filenameI1 = wget.download(iconUrlI1)                        # Icon dowloaden
 
             iconUrlI2 = vorD['forecast']['simpleforecast']['forecastday'][2]['icon_url'] # IconUrl holen
-            iconUrlI2 = iconUrlI2.replace("/k/", "/j/")                  # Art des Icons tauschen
+            iconUrlI2 = iconUrlI2.replace("/k/", "/a/")                  # Art des Icons tauschen
             filenameI2 = wget.download(iconUrlI2)                        # Icon dowloaden
 
             iconUrlI3 = vorD['forecast']['simpleforecast']['forecastday'][3]['icon_url'] # IconUrl holen
-            iconUrlI3 = iconUrlI3.replace("/k/", "/j/")                  # Art des Icons tauschen
+            iconUrlI3 = iconUrlI3.replace("/k/", "/a/")                  # Art des Icons tauschen
             filenameI3 = wget.download(iconUrlI3)                        # Icon dowloaden
 
         # Fenster bauen
@@ -116,22 +117,22 @@ def ZeitLoop():
         Tj.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), tabs = ('1c', CENTER))
         Tj.tag_configure('zusatzUeb', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('1c', CENTER, '20c', LEFT))
         Tj.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('2,5c'))
-        Tj.tag_configure('tempHeiss', font=("Arial", SCHRIFTGROESSE + 7, 'bold'), foreground ='darkred', tabs = ('2,5c'))
-        Tj.tag_configure('tempKalt', font=("Arial", SCHRIFTGROESSE + 7, 'bold'), foreground ='darkblue', tabs = ('2,5c'))
-        Tj.tag_configure('tempNormal', font=("Arial", SCHRIFTGROESSE + 7, 'bold'), foreground ='darkgreen', tabs = ('2,5c'))
+        Tj.tag_configure('tempHeiss', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkred', tabs = ('2,5c'))
+        Tj.tag_configure('tempKalt', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkblue', tabs = ('2,5c'))
+        Tj.tag_configure('tempNormal', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkgreen', tabs = ('2,5c'))
         Tj.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,5c'))
         Tj.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue', tabs = ('2,5c'))
 
-        T0 = Text(master=frame, relief = 'flat', bd = 0, bg = BGCOLOR)
-        T0I = Text(master=frame, relief = 'flat', bd = 0)
+        T0 = Text(master=frame, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
+        T0I = Text(master=frame, relief = 'flat', borderwidth = 0)
         T0I.image_create(END, image=imgI0)
         T0.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'), tabs = ('2,5c', '6c'))
         T0.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('2,5c', '6c'))
         T0.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,5c', '6c'))
         T0.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue', tabs = ('2,5c', '6c'))
 
-        T1 = Text(master=frame, relief = 'flat', bd = 0, bg = BGCOLOR)
-        T1I = Text(master=frame, relief = 'flat', bd = 0)
+        T1 = Text(master=frame, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
+        T1I = Text(master=frame, relief = 'flat', borderwidth = 0)
         T1I.image_create(END, image=imgI1)
         T1.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'))
         T1.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('1,8c'))
@@ -169,7 +170,6 @@ def ZeitLoop():
         T1I.place(x = 10, y = 253, width = 51, height = 51)
         T2I.place(x = 170, y = 253, width = 51, height = 51)
         T3I.place(x = 330, y = 253, width = 51, height = 51)
-        button.place(x = 460, y = 300, width = 20, height = 20)
 
         print "erzeuge Texte"
         # Wetter jetzt
