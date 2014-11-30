@@ -56,52 +56,96 @@ def ZeitLoop():
         if (t - tl) > 1200:
             tl = t
             # Wunderground JSON-Daten holen
-            print "hole aktuelle Werte"
-            akt = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/conditions/lang:DL/pws:1/q/pws:ibadenwr274.json")
-            print "hole Vorhersagen"
-            vor = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/forecast/lang:DL/pws:1/q/pws:ibadenwr274.json")
-            print "hole astronomische Werte"
-            ast = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/astronomy/lang:DL/pws:1/q/pws:ibadenwr274.json")
-            print "hole Alarme"
-            al = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/alerts/lang:DL/pws:1/q/pws:ibadenwr274.json")
+            print "versuche aktuelle Werte zu holen ...",
+            try:
+                akt = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/conditions/lang:DL/pws:1/q/pws:ibadenwr274.json")
+                print "erfolgreich",
+                aktD = akt.json()
+                print "JSON verarbeitet"
 
-            # JSON-Strukturen parsen und anlegen
-            print "verarbeite JSON"
-            aktD = akt.json
-            vorD = vor.json
-            astD = ast.json
-            alD = al.json
+                # Zeitstempel der Wetterdaten holen, parsen und in deutsches Format wandeln
+                zeitRoh = email.utils.parsedate_tz(aktD['current_observation']['observation_time_rfc822'])
+                TjWTag = strftime("%A", gmtime(email.utils.mktime_tz(zeitRoh) + zeitRoh[9]))
+                TjZeit = strftime("%H:%M", gmtime(email.utils.mktime_tz(zeitRoh) + zeitRoh[9]))
+                tj = mktime(gmtime(email.utils.mktime_tz(zeitRoh) + zeitRoh[9]))
 
-            # Zeitstempel der Wetterdaten holen, parsen und in deutsches Format wandeln
-            zeitRoh = email.utils.parsedate_tz(aktD['current_observation']['observation_time_rfc822'])
-            TjWTag = strftime("%A", gmtime(email.utils.mktime_tz(zeitRoh) + zeitRoh[9]))
-            TjZeit = strftime("%H:%M", gmtime(email.utils.mktime_tz(zeitRoh) + zeitRoh[9]))
-            tj = mktime(gmtime(email.utils.mktime_tz(zeitRoh) + zeitRoh[9]))
+                # Icons holen, vorher alte löschen
+                print "lösche alte Icons"
+                for filename in glob("*.gif"):
+                    os.remove(filename)
 
-            # Icons holen, vorher alte löschen
-            print "lösche alte Icons"
-            for filename in glob("*.gif"):
-                os.remove(filename)
-            print "hole Icons"
-            iconUrlIj = aktD['current_observation']['icon_url'] # IconUrl holen
-            iconUrlIj = iconUrlIj.replace("/k/", "/a/")                  # Art des Icons tauschen
-            filenameIj = wget.download(iconUrlIj)                        # Icon dowloaden
+                print "hole Jetzt-Icon"
+                iconUrlIj = aktD['current_observation']['icon_url'] # IconUrl holen
+                iconUrlIj = iconUrlIj.replace("/k/", "/a/")                  # Art des Icons tauschen
+                try:
+                    filenameIj = wget.download(iconUrlIj)                        # Icon dowloaden
+                except IOError:
+                    filenameIj = './fehler.pgm'
+                    print "Jetzt-Icon konnte nicht geladen werden"
 
-            iconUrlI0 = vorD['forecast']['simpleforecast']['forecastday'][0]['icon_url'] # IconUrl holen
-            iconUrlI0 = iconUrlI0.replace("/k/", "/a/")                  # Art des Icons tauschen
-            filenameI0 = wget.download(iconUrlI0)                        # Icon dowloaden
+            except requests.exceptions.ConnectionError:
+                print "keine Verbindung"
 
-            iconUrlI1 = vorD['forecast']['simpleforecast']['forecastday'][1]['icon_url'] # IconUrl holen
-            iconUrlI1 = iconUrlI1.replace("/k/", "/a/")                  # Art des Icons tauschen
-            filenameI1 = wget.download(iconUrlI1)                        # Icon dowloaden
+            print "versuche Vorhersagen zu holen ...",
+            try:
+                vor = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/forecast/lang:DL/pws:1/q/pws:ibadenwr274.json")
+                print "erfolgreich",
+                vorD = vor.json()
+                print "JSON verarbeitet"
 
-            iconUrlI2 = vorD['forecast']['simpleforecast']['forecastday'][2]['icon_url'] # IconUrl holen
-            iconUrlI2 = iconUrlI2.replace("/k/", "/a/")                  # Art des Icons tauschen
-            filenameI2 = wget.download(iconUrlI2)                        # Icon dowloaden
+                print "hole Vorhersage-Icons"
+                iconUrlI0 = vorD['forecast']['simpleforecast']['forecastday'][0]['icon_url'] # IconUrl holen
+                iconUrlI0 = iconUrlI0.replace("/k/", "/a/")                  # Art des Icons tauschen
+                try:
+                    filenameI0 = wget.download(iconUrlI0)                        # Icon dowloaden
+                except IOError:
+                    filenameI0 = './fehler.pgm'
+                    print "Heute-Icon konnte nicht geladen werden"
 
-            iconUrlI3 = vorD['forecast']['simpleforecast']['forecastday'][3]['icon_url'] # IconUrl holen
-            iconUrlI3 = iconUrlI3.replace("/k/", "/a/")                  # Art des Icons tauschen
-            filenameI3 = wget.download(iconUrlI3)                        # Icon dowloaden
+                iconUrlI1 = vorD['forecast']['simpleforecast']['forecastday'][1]['icon_url'] # IconUrl holen
+                iconUrlI1 = iconUrlI1.replace("/k/", "/a/")                  # Art des Icons tauschen
+                try:
+                    filenameI1 = wget.download(iconUrlI1)                        # Icon dowloaden
+                except IOError:
+                    filenameI1 = './fehler.pgm'
+                    print "Morgen-Icon konnte nicht geladen werden"
+
+                iconUrlI2 = vorD['forecast']['simpleforecast']['forecastday'][2]['icon_url'] # IconUrl holen
+                iconUrlI2 = iconUrlI2.replace("/k/", "/a/")                  # Art des Icons tauschen
+                try:
+                    filenameI2 = wget.download(iconUrlI2)                        # Icon dowloaden
+                except IOError:
+                    filenameI2 = './fehler.pgm'
+                    print "Übermorgen-Icon konnte nicht geladen werden"
+
+                iconUrlI3 = vorD['forecast']['simpleforecast']['forecastday'][3]['icon_url'] # IconUrl holen
+                iconUrlI3 = iconUrlI3.replace("/k/", "/a/")                  # Art des Icons tauschen
+                try:
+                    filenameI3 = wget.download(iconUrlI3)                        # Icon dowloaden
+                except IOError:
+                    filenameI3 = './fehler.pgm'
+                    print "Überübermorgen-Icon konnte nicht geladen werden"
+
+            except requests.exceptions.ConnectionError:
+                print "keine Verbindung"
+
+            print "versuche astronomische Werte zu holen ...",
+            try:
+                ast = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/astronomy/lang:DL/pws:1/q/pws:ibadenwr274.json")
+                print "erfolgreich",
+                astD = ast.json()
+                print "JSON verarbeitet"
+            except requests.exceptions.ConnectionError:
+                print "keine Verbindung"
+
+            print "versuche Alarme zu holen ...",
+            try:
+                al = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/alerts/lang:DL/pws:1/q/pws:ibadenwr274.json")
+                print "erfolgreich",
+                alD = al.json()
+                print "JSON verarbeitet"
+            except requests.exceptions.ConnectionError:
+                print "keine Verbindung"
 
         # Fenster bauen
         print "schreibe in das Fenster"
@@ -135,7 +179,7 @@ def ZeitLoop():
         T1I = Text(master=frame, relief = 'flat', borderwidth = 0)
         T1I.image_create(END, image=imgI1)
         T1.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'))
-        T1.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('1,8c'))
+        T1.tag_configure('normal', font=("Arial", SCHRIFTGROESSE - 1), tabs = ('1,8c'))
         T1.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-8))
         T1.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('1,8c'))
         T1.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue', tabs = ('1,8c'))
@@ -144,7 +188,7 @@ def ZeitLoop():
         T2I = Text(master=frame, relief = 'flat', bd = 0)
         T2I.image_create(END, image=imgI2)
         T2.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'), tabs = ('1,8c'))
-        T2.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('1,8c'))
+        T2.tag_configure('normal', font=("Arial", SCHRIFTGROESSE - 1), tabs = ('1,8c'))
         T2.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-8))
         T2.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('1,8c'))
         T2.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue', tabs = ('1,8c'))
@@ -153,7 +197,7 @@ def ZeitLoop():
         T3I = Text(master=frame, relief = 'flat', bd = 0)
         T3I.image_create(END, image=imgI3)
         T3.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'), tabs = ('1,8c'))
-        T3.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('1,8c'))
+        T3.tag_configure('normal', font=("Arial", SCHRIFTGROESSE - 1), tabs = ('1,8c'))
         T3.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-8))
         T3.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('1,8c'))
         T3.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue', tabs = ('1,8c'))
