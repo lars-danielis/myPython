@@ -50,38 +50,40 @@ regenI = PhotoImage(file = './regen.pgm')
 #Formate definieren
 Tj = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
 Tj.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), tabs = ('1c', CENTER))
-Tj.tag_configure('zusatzUeb', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('1c', CENTER, '20c', LEFT))
+Tj.tag_configure('zusatzUeb', font=("Arial", SCHRIFTGROESSE - 2))
 Tj.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('2,5c'))
-Tj.tag_configure('tempHeiss', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkred', tabs = ('2,5c'))
-Tj.tag_configure('tempKalt', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkblue', tabs = ('2,5c'))
-Tj.tag_configure('tempNormal', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkgreen', tabs = ('2,5c'))
+Tj.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-9))
+Tj.tag_configure('tempHeiss', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkred', tabs = ('2,5c', NUMERIC))
+Tj.tag_configure('tempKalt', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkblue', tabs = ('2,5c', NUMERIC))
+Tj.tag_configure('tempNormal', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkgreen', tabs = ('2,5c', NUMERIC))
 Tj.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,5c'))
 Tj.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue', tabs = ('2,5c'))
 
 T0 = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
 T0.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'), tabs = ('2,5c', '6c'))
-T0.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('2,5c', '6c'))
+T0.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('2,5c', NUMERIC, '6c'))
+T0.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-7))
 T0.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,5c', '6c'))
 T0.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue', tabs = ('2,5c', '6c'))
 
 T1 = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
 T1.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'))
-T1.tag_configure('normal', font=("Arial", SCHRIFTGROESSE - 1), tabs = ('1,8c'))
-T1.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-8))
+T1.tag_configure('normal', font=("Arial", SCHRIFTGROESSE - 1), tabs = ('1,8c', NUMERIC))
+T1.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-7))
 T1.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('1,8c'))
 T1.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue', tabs = ('1,8c'))
 
 T2 = Text(master=window, relief = 'flat', bd = 0, bg = BGCOLOR)
 T2.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'), tabs = ('1,8c'))
-T2.tag_configure('normal', font=("Arial", SCHRIFTGROESSE - 1), tabs = ('1,8c'))
-T2.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-8))
+T2.tag_configure('normal', font=("Arial", SCHRIFTGROESSE - 1), tabs = ('1,8c', NUMERIC))
+T2.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-7))
 T2.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('1,8c'))
 T2.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue', tabs = ('1,8c'))
 
 T3 = Text(master=window, relief = 'flat', bd = 0, bg = BGCOLOR)
 T3.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'), tabs = ('1,8c'))
-T3.tag_configure('normal', font=("Arial", SCHRIFTGROESSE - 1), tabs = ('1,8c'))
-T3.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-8))
+T3.tag_configure('normal', font=("Arial", SCHRIFTGROESSE - 1), tabs = ('1,8c', NUMERIC))
+T3.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-7))
 T3.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('1,8c'))
 T3.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue', tabs = ('1,8c'))
 
@@ -225,9 +227,12 @@ def ZeitLoop(mitLoop):
             # Vorhersage heute
             T0.delete(1.0, END)
             T0.insert(INSERT, u' Vorhersage für heute\n', 'ueberschrift')
-            T0.insert(END, ' ','normal')
+            T0.insert(END, ' \n', 'leer')
+
+            # Maxtemperatur
+            T0.insert(END, '\t' +  vorD['forecast']['simpleforecast']['forecastday'][0]['high']['celsius'] + u"°C", 'normal')
             # Mond heute
-            T0.insert(END, '\t\t', 'zusatz')
+            T0.insert(END, '\t', 'zusatz')
             mond = int(astD['moon_phase']['percentIlluminated'])
             if mond < 5:
                 T0.image_create(END, image = mondI0)
@@ -250,9 +255,8 @@ def ZeitLoop(mitLoop):
             elif mond > 95:
                 T0.image_create(END, image = mondI4)
                 T0.insert(END, ' Vollmond ' + astD['moon_phase']['percentIlluminated'] + '%\n', 'zusatz')
-            # Temperaturen
-            T0.insert(END, '\t' +  vorD['forecast']['simpleforecast']['forecastday'][0]['low']['celsius'] + u"°C - ", 'normal')
-            T0.insert(END, ' ' + vorD['forecast']['simpleforecast']['forecastday'][0]['high']['celsius'] + u"°C",'normal')
+            # Mintemperatur
+            T0.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][0]['low']['celsius'] + u"°C",'normal')
             # Sonne
             T0.insert(END, '\t', 'zusatz')
             T0.image_create(END, image= sonneI)
@@ -261,25 +265,33 @@ def ZeitLoop(mitLoop):
             # Niederschlag heute
             if vorD['forecast']['simpleforecast']['forecastday'][0]['snow_allday']['cm'] == 0.0:
                 if vorD['forecast']['simpleforecast']['forecastday'][0]['qpf_allday']['mm'] == 0:
-                    T0.insert(END, '\t\t', 'zusatz')
+                    T0.insert(END, '\t', 'zusatz')
                     T0.image_create(END, image = trockenI)
                 else:
-                    T0.insert(END, '\t\t', 'zusatz')
+                    T0.insert(END, '\t', 'zusatz')
                     T0.image_create(END, image = regenI)
                     T0.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][0]['qpf_allday']['mm']),'zusatz')
                     T0.insert(END, 'mm','zusatz')
             else:
-                T0.insert(END, '\t\t', 'zusatz')
+                T0.insert(END, '\t', 'zusatz')
                 T0.image_create(END, image = schneeI)
                 T0.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][0]['snow_allday']['cm']),'zusatz')
                 T0.insert(END, 'cm','zusatz')
+            # Wind heute
+            T0.insert(END, '\t', 'zusatz')
+            T0.image_create(END, image=windI)
+            if vorD['forecast']['simpleforecast']['forecastday'][0]['avewind']['kph'] > 0:
+                T0.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][0]['avewind']['kph']) + "km/h aus ", 'zusatz')
+                T0.insert(END, vorD['forecast']['simpleforecast']['forecastday'][0]['avewind']['dir'], 'zusatz')
+            else:
+                T0.insert(END, ' 0 km/h', 'zusatz')
 
             # Vorhersage morgen
             T1.delete(1.0, END)
             T1.insert(INSERT, ' Morgen\n', 'ueberschrift')
             T1.insert(END, ' \n', 'leer')
-            T1.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][1]['high']['celsius'] + u"°C", 'normal')
-            T1.insert(END, ' - ' + vorD['forecast']['simpleforecast']['forecastday'][1]['low']['celsius'] + u"°C\n", 'normal')
+            T1.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][1]['high']['celsius'] + u"°C\n", 'normal')
+            T1.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][1]['low']['celsius'] + u"°C\n", 'normal')
             if vorD['forecast']['simpleforecast']['forecastday'][1]['snow_allday']['cm'] == 0.0:
                 if vorD['forecast']['simpleforecast']['forecastday'][1]['qpf_allday']['mm'] == 0:
                     T1.insert(END, '\t', 'zusatz')
@@ -298,8 +310,8 @@ def ZeitLoop(mitLoop):
             T2.delete(1.0, END)
             T2.insert(INSERT, ' ' + vorD['forecast']['simpleforecast']['forecastday'][2]['date']['weekday'] + '\n', 'ueberschrift')
             T2.insert(END, ' \n', 'leer')
-            T2.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][2]['high']['celsius'] + u"°C", 'normal')
-            T2.insert(END, ' - ' + vorD['forecast']['simpleforecast']['forecastday'][2]['low']['celsius'] + u"°C\n", 'normal')
+            T2.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][2]['high']['celsius'] + u"°C\n", 'normal')
+            T2.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][2]['low']['celsius'] + u"°C\n", 'normal')
             if vorD['forecast']['simpleforecast']['forecastday'][2]['snow_allday']['cm'] == 0.0:
                 if vorD['forecast']['simpleforecast']['forecastday'][2]['qpf_allday']['mm'] == 0:
                     T2.insert(END, '\t', 'zusatz')
@@ -315,11 +327,11 @@ def ZeitLoop(mitLoop):
                 T2.insert(END, 'cm','zusatz')
 
             # Vorhersage überübermorgen
-            T2.delete(1.0, END)
+            T3.delete(1.0, END)
             T3.insert(INSERT, ' ' + vorD['forecast']['simpleforecast']['forecastday'][3]['date']['weekday'] + '\n', 'ueberschrift')
             T3.insert(END, ' \n', 'leer')
-            T3.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][3]['high']['celsius'] + u"°C", 'normal')
-            T3.insert(END, ' - ' + vorD['forecast']['simpleforecast']['forecastday'][3]['low']['celsius'] + u"°C\n", 'normal')
+            T3.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][3]['high']['celsius'] + u"°C\n", 'normal')
+            T3.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][3]['low']['celsius'] + u"°C\n", 'normal')
             if vorD['forecast']['simpleforecast']['forecastday'][3]['snow_allday']['cm'] == 0.0:
                 if vorD['forecast']['simpleforecast']['forecastday'][3]['qpf_allday']['mm'] == 0:
                     T3.insert(END, '\t', 'zusatz')
@@ -339,6 +351,7 @@ def ZeitLoop(mitLoop):
         Tj.delete(1.0, END)
         Tj.insert(INSERT, '\t' + TjWTag, 'ueberschrift')
         Tj.insert(END, '  letzte Aktualisierung vor ' + str(int((t-tj)/60)) +' Minuten\n', 'zusatz')
+        Tj.insert(END, ' \n', 'leer')
         if aktD['current_observation']['temp_c'] > 20:
             Tj.insert(END, '\t' + str(aktD['current_observation']['temp_c']) + u"°C ", 'tempHeiss')
         elif aktD['current_observation']['temp_c'] < 0:
