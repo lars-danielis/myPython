@@ -298,6 +298,7 @@ def ZeitLoop(mitLoop):
                     T1.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][1]['qpf_allday']['mm']),'zusatzregen')
                     T1.insert(END, 'mm','zusatzregen')
             else:
+                T1.insert(END, '\t', 'zusatzregen')
                 T1.image_create(END, image = schneeI)
                 T1.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][1]['snow_allday']['cm']),'zusatzregen')
                 T1.insert(END, 'cm','zusatzregen')
@@ -318,6 +319,7 @@ def ZeitLoop(mitLoop):
                     T2.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][2]['qpf_allday']['mm']),'zusatzregen')
                     T2.insert(END, 'mm','zusatzregen')
             else:
+                T2.insert(END, '\t', 'zusatzregen')
                 T2.image_create(END, image = schneeI)
                 T2.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][2]['snow_allday']['cm']),'zusatzregen')
                 T2.insert(END, 'cm','zusatzregen')
@@ -338,6 +340,7 @@ def ZeitLoop(mitLoop):
                     T3.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][3]['qpf_allday']['mm']),'zusatzregen')
                     T3.insert(END, 'mm','zusatzregen')
             else:
+                T3.insert(END, '\t', 'zusatzregen')
                 T3.image_create(END, image = schneeI)
                 T3.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][3]['snow_allday']['cm']),'zusatzregen')
                 T3.insert(END, 'cm','zusatzregen')
