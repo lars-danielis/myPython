@@ -50,42 +50,37 @@ regenI = PhotoImage(file = './regen.pgm')
 #Formate definieren
 Tj = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
 Tj.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), tabs = ('1c', CENTER))
-Tj.tag_configure('zusatzUeb', font=("Arial", SCHRIFTGROESSE - 2))
 Tj.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('2,5c'))
 Tj.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-9))
 Tj.tag_configure('tempHeiss', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkred', tabs = ('2,5c', NUMERIC))
 Tj.tag_configure('tempKalt', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkblue', tabs = ('2,5c', NUMERIC))
 Tj.tag_configure('tempNormal', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkgreen', tabs = ('2,5c', NUMERIC))
 Tj.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,5c'))
-Tj.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue', tabs = ('2,5c'))
 
 T0 = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
 T0.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'), tabs = ('2,5c', '6c'))
 T0.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('2,5c', NUMERIC, '6c'))
 T0.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-7))
 T0.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,5c', '6c'))
-T0.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue', tabs = ('2,5c', '6c'))
+T0.tag_configure('zusatzregen', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,4c', '6c'))
 
 T1 = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
 T1.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'))
 T1.tag_configure('normal', font=("Arial", SCHRIFTGROESSE - 1), tabs = ('1,8c', NUMERIC))
 T1.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-7))
-T1.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('1,8c'))
-T1.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue', tabs = ('1,8c'))
+T1.tag_configure('zusatzregen', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('1,7c'))
 
 T2 = Text(master=window, relief = 'flat', bd = 0, bg = BGCOLOR)
 T2.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'), tabs = ('1,8c'))
 T2.tag_configure('normal', font=("Arial", SCHRIFTGROESSE - 1), tabs = ('1,8c', NUMERIC))
 T2.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-7))
-T2.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('1,8c'))
-T2.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue', tabs = ('1,8c'))
+T2.tag_configure('zusatzregen', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('1,7c'))
 
 T3 = Text(master=window, relief = 'flat', bd = 0, bg = BGCOLOR)
 T3.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'), tabs = ('1,8c'))
 T3.tag_configure('normal', font=("Arial", SCHRIFTGROESSE - 1), tabs = ('1,8c', NUMERIC))
 T3.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-7))
-T3.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('1,8c'))
-T3.tag_configure('blau', font=("Arial", SCHRIFTGROESSE), foreground='blue', tabs = ('1,8c'))
+T3.tag_configure('zusatzregen', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('1,7c'))
 
 # Formate für die Vorhersagebilder
 TjI = Text(master=window, relief = 'flat', borderwidth = 0)
@@ -265,23 +260,24 @@ def ZeitLoop(mitLoop):
             # Niederschlag heute
             if vorD['forecast']['simpleforecast']['forecastday'][0]['snow_allday']['cm'] == 0.0:
                 if vorD['forecast']['simpleforecast']['forecastday'][0]['qpf_allday']['mm'] == 0:
-                    T0.insert(END, '\t', 'zusatz')
+                    T0.insert(END, '\t', 'zusatzregen')
                     T0.image_create(END, image = trockenI)
                 else:
-                    T0.insert(END, '\t', 'zusatz')
+                    T0.insert(END, '\t', 'zusatzregen')
                     T0.image_create(END, image = regenI)
-                    T0.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][0]['qpf_allday']['mm']),'zusatz')
-                    T0.insert(END, 'mm','zusatz')
+                    T0.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][0]['qpf_allday']['mm']),'zusatzregen')
+                    T0.insert(END, 'mm','zusatzregen')
             else:
-                T0.insert(END, '\t', 'zusatz')
+                T0.insert(END, '\t', 'zusatzregen')
                 T0.image_create(END, image = schneeI)
-                T0.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][0]['snow_allday']['cm']),'zusatz')
-                T0.insert(END, 'cm','zusatz')
+                T0.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][0]['snow_allday']['cm']),'zusatzregen')
+                T0.insert(END, 'cm','zusatzregen')
             # Wind heute
             T0.insert(END, '\t', 'zusatz')
             T0.image_create(END, image=windI)
             if vorD['forecast']['simpleforecast']['forecastday'][0]['avewind']['kph'] > 0:
-                T0.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][0]['avewind']['kph']) + "km/h aus ", 'zusatz')
+                T0.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][0]['avewind']['kph']),'zusatz')
+                T0.insert(END, '-' + str(vorD['forecast']['simpleforecast']['forecastday'][0]['maxwind']['kph'])+ "km/h ", 'zusatz')
                 T0.insert(END, vorD['forecast']['simpleforecast']['forecastday'][0]['avewind']['dir'], 'zusatz')
             else:
                 T0.insert(END, ' 0 km/h', 'zusatz')
@@ -294,17 +290,17 @@ def ZeitLoop(mitLoop):
             T1.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][1]['low']['celsius'] + u"°C\n", 'normal')
             if vorD['forecast']['simpleforecast']['forecastday'][1]['snow_allday']['cm'] == 0.0:
                 if vorD['forecast']['simpleforecast']['forecastday'][1]['qpf_allday']['mm'] == 0:
-                    T1.insert(END, '\t', 'zusatz')
+                    T1.insert(END, '\t', 'zusatzregen')
                     T1.image_create(END, image = trockenI)
                 else:
-                    T1.insert(END, '\t', 'zusatz')
+                    T1.insert(END, '\t', 'zusatzregen')
                     T1.image_create(END, image = regenI)
-                    T1.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][1]['qpf_allday']['mm']),'zusatz')
-                    T1.insert(END, 'mm','zusatz')
+                    T1.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][1]['qpf_allday']['mm']),'zusatzregen')
+                    T1.insert(END, 'mm','zusatzregen')
             else:
                 T1.image_create(END, image = schneeI)
-                T1.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][1]['snow_allday']['cm']),'zusatz')
-                T1.insert(END, 'cm','zusatz')
+                T1.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][1]['snow_allday']['cm']),'zusatzregen')
+                T1.insert(END, 'cm','zusatzregen')
 
             # Vorhersage übermorgen
             T2.delete(1.0, END)
@@ -314,17 +310,17 @@ def ZeitLoop(mitLoop):
             T2.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][2]['low']['celsius'] + u"°C\n", 'normal')
             if vorD['forecast']['simpleforecast']['forecastday'][2]['snow_allday']['cm'] == 0.0:
                 if vorD['forecast']['simpleforecast']['forecastday'][2]['qpf_allday']['mm'] == 0:
-                    T2.insert(END, '\t', 'zusatz')
+                    T2.insert(END, '\t', 'zusatzregen')
                     T2.image_create(END, image = trockenI)
                 else:
-                    T2.insert(END, '\t', 'zusatz')
+                    T2.insert(END, '\t', 'zusatzregen')
                     T2.image_create(END, image = regenI)
-                    T2.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][2]['qpf_allday']['mm']),'zusatz')
-                    T2.insert(END, 'mm','zusatz')
+                    T2.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][2]['qpf_allday']['mm']),'zusatzregen')
+                    T2.insert(END, 'mm','zusatzregen')
             else:
                 T2.image_create(END, image = schneeI)
-                T2.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][2]['snow_allday']['cm']),'zusatz')
-                T2.insert(END, 'cm','zusatz')
+                T2.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][2]['snow_allday']['cm']),'zusatzregen')
+                T2.insert(END, 'cm','zusatzregen')
 
             # Vorhersage überübermorgen
             T3.delete(1.0, END)
@@ -334,17 +330,17 @@ def ZeitLoop(mitLoop):
             T3.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][3]['low']['celsius'] + u"°C\n", 'normal')
             if vorD['forecast']['simpleforecast']['forecastday'][3]['snow_allday']['cm'] == 0.0:
                 if vorD['forecast']['simpleforecast']['forecastday'][3]['qpf_allday']['mm'] == 0:
-                    T3.insert(END, '\t', 'zusatz')
+                    T3.insert(END, '\t', 'zusatzregen')
                     T3.image_create(END, image = trockenI)
                 else:
-                    T3.insert(END, '\t', 'zusatz')
+                    T3.insert(END, '\t', 'zusatzregen')
                     T3.image_create(END, image = regenI)
-                    T3.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][3]['qpf_allday']['mm']),'zusatz')
-                    T3.insert(END, 'mm','zusatz')
+                    T3.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][3]['qpf_allday']['mm']),'zusatzregen')
+                    T3.insert(END, 'mm','zusatzregen')
             else:
                 T3.image_create(END, image = schneeI)
-                T3.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][3]['snow_allday']['cm']),'zusatz')
-                T3.insert(END, 'cm','zusatz')
+                T3.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][3]['snow_allday']['cm']),'zusatzregen')
+                T3.insert(END, 'cm','zusatzregen')
 
         print "erzeuge Texte für aktuelle Werte je Minute"
         # Wetter jetzt
@@ -376,7 +372,7 @@ def ZeitLoop(mitLoop):
         else:
             Tj.insert(END, 'gleichbleibend\n', 'zusatz')
 
-        # Wind jetzt
+        # Wind jetzt und Niederschlag bis jetzt
         Tj.insert(END, '\t', 'zusatz')
         Tj.image_create(END, image=windI)
         if aktD['current_observation']['wind_kph'] > 0:
@@ -384,12 +380,33 @@ def ZeitLoop(mitLoop):
             Tj.insert(END, aktD['current_observation']['wind_dir'], 'zusatz')
         else:
             Tj.insert(END, ' 0 km/h', 'zusatz')
+        Tj.insert(END, ', ', 'zusatz')
+        if aktD['current_observation']['precip_today_metric'] == '0':
+            Tj.image_create(END, image = trockenI)
+        else:
+            Tj.image_create(END, image = regenI)
+            Tj.insert(END, ' ' + aktD['current_observation']['precip_today_metric'],'zusat')
+            Tj.insert(END, 'mm','zusatz')
+
+        # Alarme prüfen und wenn vorhanden den Knopf mit der Anzahl der Alarme anzeigen, sonst Knopf löschen
+        if len(alD['alerts']):
+            buttonText = str(len(alD['alerts']))
+            if len(alD['alerts']) == 1:
+                 buttonText += ' Alarm'
+            else:
+                buttonText += ' Alarme'
+            buttonAlarm = Button(master=window, text=buttonText, bg="yellow", fg="black", relief='flat', command=window.destroy)
+            buttonAlarm.place(x = 410, y = 80, width = 70, height = 60)
+        else:
+            try:
+                buttonAlarm.destroy()
+            except:
+                pass
 
         if mitLoop:
             sleep(60)
         else:
             break
-
 
 # starte Zeitloop in einem weiteren thread
 thread1 = myThread(1, "Zeitloop ")
@@ -399,7 +416,7 @@ thread1.start()
 print "Beenden Knopf einbauen und Fenster anzeigen\n"
 
 # Beenden Knopf
-button = Button(master=window, text="X", bg=BGCOLOR, fg="white", command=window.destroy)
-button.place(x = 460, y = 300, width = 20, height = 20)
+buttonExit = Button(master=window, text="X", bg=BGCOLOR, fg="lightgrey", relief='flat', command=window.destroy)
+buttonExit.place(x = 460, y = 0, width = 20, height = 20)
 
 window.mainloop()
