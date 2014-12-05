@@ -15,6 +15,17 @@ BGCOLOR = "white"
 WEISS = "#FFF"
 SCHRIFTGROESSE = 13
 
+stopZeitLoop = FALSE
+TjWTag = ''
+filenameIj = ''
+t = localtime()
+tj = localtime()
+aktD = {}
+alD = {}
+gelberText = u'Das Wetter ist potenziell gefährlich. Die vorhergesagten Wetterphänomene sind nicht wirklich ungewöhnlich, aber eine erhöhte Aufmerksamkeit ist angebracht. Gehen Sie keine vermeidbaren Risiken ein.'
+orangerText = u'Das Wetter ist gefährlich. Ungewöhnliche meteorologische Phänomene wurden vorhergesagt. Schäden und Unfälle sind wahrscheinlich. Seien Sie sehr aufmerksam und vorsichtig.'
+roterText = u'Das Wetter ist sehr gefährlich. Ungewöhnlich intensive meteorologische Phänomene wurden vorhergesagt. Extreme Schäden und Unfälle, oft über größere Flächen, bedrohen Leben sowie Hab und Gut.'
+
 class myThread(threading.Thread):
     def __init__(self, threadID, name):
         threading.Thread.__init__(self)
@@ -24,6 +35,86 @@ class myThread(threading.Thread):
         print "Starte " + self.name
         ZeitLoop(1)
         print "Beende " + self.name
+
+
+def beenden():
+    global stopZeitLoop
+    stopZeitLoop = TRUE
+    thread1.join()
+    window.destroy()
+
+def alarmText():
+    global alD
+    print "erzeuge Alarm Texte"
+    buttonAlarm.config(text='zurück', bg='white', fg='black', command=jetzt)
+    Tj.delete(1.0, END)
+    Tj.config(bg='yellow')
+    TjI.place(x = 25,  y = 50,  width = 0,  height = 0 )
+    Tj.insert(INSERT, '\t' + 'Alarm 1\n', 'ueberschrift')
+    Tj.insert(END, 'Meldung, blabla\n','normal')
+    Tj.insert(END, gelberText, 'zusatz')
+
+def jetzt():
+    global TjWTag, t, tj, aktD, aldD, filenameIj
+    print "erzeuge Texte für aktuelle Werte je Minute"
+    # Wetter jetzt
+    Tj.delete(1.0, END)
+    Tj.config(bg=BGCOLOR)
+    TjI.place(x = 25,  y = 50,  width = 51,  height = 51 )
+    Tj.insert(INSERT, '\t' + TjWTag, 'ueberschrift')
+    Tj.insert(END, '  letzte Aktualisierung vor ' + str(int((t-tj)/60)) +' Minuten\n', 'zusatz')
+    #Tj.insert(END, ' \n', 'leer')
+    if aktD['current_observation']['temp_c'] > 20:
+        Tj.insert(END, '\t' + str(aktD['current_observation']['temp_c']) + u"°C ", 'tempHeiss')
+    elif aktD['current_observation']['temp_c'] < 0:
+        Tj.insert(END, '\t' + str(aktD['current_observation']['temp_c']) + u"°C ", 'tempKalt')
+    else:
+        Tj.insert(END, '\t' + str(aktD['current_observation']['temp_c']) + u"°C ", 'tempNormal')
+    Tj.insert(END,   u'fühlt sich an wie ' + aktD['current_observation']['feelslike_c'] + u"°C\n", 'zusatz')
+
+    # Luftfeuchtigkeit jetzt
+    Tj.insert(END, '\t', 'normal')
+    Tj.image_create(END, image=tropfenI)
+    Tj.insert(END, ' ' + aktD['current_observation']['relative_humidity'] + '\n', 'normal')
+
+    # Luftdruck jetzt und Tendenz
+    Tj.insert(END, '\t', 'normal')
+    Tj.image_create(END, image=druckI)
+    Tj.insert(END, ' ' + aktD['current_observation']['pressure_mb'] + 'mbar ', 'zusatz')
+    if aktD['current_observation']['pressure_trend'] == '+':
+        Tj.insert(END,'steigend\n', 'zusatz')
+    elif aktD['current_observation']['pressure_trend'] == '-':
+        Tj.insert(END, 'fallend\n', 'zusatz')
+    else:
+        Tj.insert(END, 'gleichbleibend\n', 'zusatz')
+
+    # Wind jetzt und Niederschlag bis jetzt
+    Tj.insert(END, '\t', 'zusatz')
+    Tj.image_create(END, image=windI)
+    if aktD['current_observation']['wind_kph'] > 0:
+        Tj.insert(END, ' ' + str(aktD['current_observation']['wind_kph']) + "km/h aus ", 'zusatz')
+        Tj.insert(END, aktD['current_observation']['wind_dir'], 'zusatz')
+    else:
+        Tj.insert(END, ' 0 km/h', 'zusatz')
+    Tj.insert(END, ', ', 'zusatz')
+    if aktD['current_observation']['precip_today_metric'] == '0':
+        Tj.image_create(END, image = trockenI)
+    else:
+        Tj.image_create(END, image = regenI)
+        Tj.insert(END, ' ' + aktD['current_observation']['precip_today_metric'],'zusat')
+        Tj.insert(END, 'mm','zusatz')
+
+    # Alarme prüfen und wenn vorhanden den Knopf mit der Anzahl der Alarme anzeigen, sonst Knopf löschen
+    if len(alD['alerts']):
+        buttonText = str(len(alD['alerts']))
+        if len(alD['alerts']) == 1:
+             buttonText += ' Alarm'
+        else:
+            buttonText += ' Alarme'
+        buttonAlarm.config(text=buttonText, bg="yellow", fg="black", command=alarmText)
+    else:
+        buttonAlarm.config(text='Alarm', bg="yellow", fg="black", command=alarmText)
+        #buttonAlarm.config(text='', bg='white', command = jetzt)
 
 locale.setlocale(locale.LC_ALL,'')
 
@@ -55,7 +146,7 @@ Tj.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-12))
 Tj.tag_configure('tempHeiss', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkred', tabs = ('2,5c', NUMERIC))
 Tj.tag_configure('tempKalt', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkblue', tabs = ('2,5c', NUMERIC))
 Tj.tag_configure('tempNormal', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkgreen', tabs = ('2,5c', NUMERIC))
-Tj.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,5c'))
+Tj.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,5c'), wrap = WORD)
 
 T0 = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
 T0.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'), tabs = ('2,5c', '5,5c'))
@@ -101,10 +192,17 @@ T1I.place(x = 10,  y = 253, width = 51,  height = 51 )
 T2I.place(x = 170, y = 253, width = 51,  height = 51 )
 T3I.place(x = 330, y = 253, width = 51,  height = 51 )
 
+# Knöpfe
+buttonAlarm = Button(master=window, text='', bg="white", fg="black", relief='flat', command=jetzt)
+buttonExit = Button(master=window, text="X", bg=BGCOLOR, fg="lightgrey", relief='flat', command=beenden)
+buttonAlarm.place(x = 395, y = 0, width = 65, height = 30)
+buttonExit.place( x = 460, y = 0, width = 20, height = 20)
+
 # Funktion um entweder einmalig zum Testen (mitLoop = 0) per Funktionsaufruf benutzt zu werden, oder mitLoop = 1
 # für die Nutzung in einem separaten Thread, der dann pro Minute die Anzeige aktualisiert (für die Anzeige der
 # Minuten seit Aktualisierung) und alle 20 Min (1200 Sekunden) die Daten neu abfragt
 def ZeitLoop(mitLoop):
+    global TjWTag, t, tj, aktD, alD, filenameIj
     tl = 0
     while True:
 
@@ -117,7 +215,7 @@ def ZeitLoop(mitLoop):
             print "versuche aktuelle Werte und Icon zu holen ...",
             try:
                 akt = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/conditions/lang:DL/pws:1/q/pws:ibadenwr274.json")
-                aktD = akt.json
+                aktD = akt.json()
                 print "erfolgreich"
 
                 # Zeitstempel der Wetterdaten holen, parsen und in deutsches Format wandeln
@@ -138,7 +236,6 @@ def ZeitLoop(mitLoop):
                 try:
                     filenameIj = wget.download(iconUrlIj)           # Icon dowloaden
                     imgIj = PhotoImage(file = filenameIj)
-                    TjI.delete(1.0, END)
                     TjI.image_create(INSERT, image=imgIj)
                 except IOError:
                     filenameIj = './fehler.pgm'
@@ -150,7 +247,7 @@ def ZeitLoop(mitLoop):
             print "versuche Vorhersagen und Icons zu holen ...",
             try:
                 vor = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/forecast/lang:DL/pws:1/q/pws:ibadenwr274.json")
-                vorD = vor.json
+                vorD = vor.json()
                 print "erfolgreich"
 
                 print "hole Vorhersage-Icons"
@@ -205,7 +302,7 @@ def ZeitLoop(mitLoop):
             print "versuche astronomische Werte zu holen ...",
             try:
                 ast = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/astronomy/lang:DL/pws:1/q/pws:ibadenwr274.json")
-                astD = ast.json
+                astD = ast.json()
                 print "erfolgreich,"
             except requests.exceptions.ConnectionError:
                 print "keine Verbindung"
@@ -213,7 +310,7 @@ def ZeitLoop(mitLoop):
             print "versuche Alarme zu holen ...",
             try:
                 al = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/alerts/lang:DL/pws:1/q/pws:ibadenwr274.json")
-                alD = al.json
+                alD = al.json()
                 print "erfolgreich,"
             except requests.exceptions.ConnectionError:
                 print "keine Verbindung"
@@ -345,69 +442,19 @@ def ZeitLoop(mitLoop):
                 T3.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][3]['snow_allday']['cm']),'zusatzregen')
                 T3.insert(END, 'cm','zusatzregen')
 
-        print "erzeuge Texte für aktuelle Werte je Minute"
-        # Wetter jetzt
-        Tj.delete(1.0, END)
-        Tj.insert(INSERT, '\t' + TjWTag, 'ueberschrift')
-        Tj.insert(END, '  letzte Aktualisierung vor ' + str(int((t-tj)/60)) +' Minuten\n', 'zusatz')
-        #Tj.insert(END, ' \n', 'leer')
-        if aktD['current_observation']['temp_c'] > 20:
-            Tj.insert(END, '\t' + str(aktD['current_observation']['temp_c']) + u"°C ", 'tempHeiss')
-        elif aktD['current_observation']['temp_c'] < 0:
-            Tj.insert(END, '\t' + str(aktD['current_observation']['temp_c']) + u"°C ", 'tempKalt')
-        else:
-            Tj.insert(END, '\t' + str(aktD['current_observation']['temp_c']) + u"°C ", 'tempNormal')
-        Tj.insert(END,   u'fühlt sich an wie ' + aktD['current_observation']['feelslike_c'] + u"°C\n", 'zusatz')
+        # jetziges Wetter anzeigen
+        jetzt()
 
-        # Luftfeuchtigkeit jetzt
-        Tj.insert(END, '\t', 'normal')
-        Tj.image_create(END, image=tropfenI)
-        Tj.insert(END, ' ' + aktD['current_observation']['relative_humidity'] + '\n', 'normal')
-
-        # Luftdruck jetzt und Tendenz
-        Tj.insert(END, '\t', 'normal')
-        Tj.image_create(END, image=druckI)
-        Tj.insert(END, ' ' + aktD['current_observation']['pressure_mb'] + 'mbar ', 'zusatz')
-        if aktD['current_observation']['pressure_trend'] == '+':
-            Tj.insert(END,'steigend\n', 'zusatz')
-        elif aktD['current_observation']['pressure_trend'] == '-':
-            Tj.insert(END, 'fallend\n', 'zusatz')
-        else:
-            Tj.insert(END, 'gleichbleibend\n', 'zusatz')
-
-        # Wind jetzt und Niederschlag bis jetzt
-        Tj.insert(END, '\t', 'zusatz')
-        Tj.image_create(END, image=windI)
-        if aktD['current_observation']['wind_kph'] > 0:
-            Tj.insert(END, ' ' + str(aktD['current_observation']['wind_kph']) + "km/h aus ", 'zusatz')
-            Tj.insert(END, aktD['current_observation']['wind_dir'], 'zusatz')
-        else:
-            Tj.insert(END, ' 0 km/h', 'zusatz')
-        Tj.insert(END, ', ', 'zusatz')
-        if aktD['current_observation']['precip_today_metric'] == '0':
-            Tj.image_create(END, image = trockenI)
-        else:
-            Tj.image_create(END, image = regenI)
-            Tj.insert(END, ' ' + aktD['current_observation']['precip_today_metric'],'zusat')
-            Tj.insert(END, 'mm','zusatz')
-
-        # Alarme prüfen und wenn vorhanden den Knopf mit der Anzahl der Alarme anzeigen, sonst Knopf löschen
-        if len(alD['alerts']):
-            buttonText = str(len(alD['alerts']))
-            if len(alD['alerts']) == 1:
-                 buttonText += ' Alarm'
-            else:
-                buttonText += ' Alarme'
-            buttonAlarm = Button(master=window, text=buttonText, bg="yellow", fg="black", relief='flat', command=window.destroy)
-            buttonAlarm.place(x = 410, y = 80, width = 70, height = 60)
-        else:
-            try:
-                buttonAlarm.destroy()
-            except:
-                pass
-
+        global stopZeitLoop
         if mitLoop:
-            sleep(60)
+            c = 60
+            while c:
+                sleep(1)
+                c -= 1
+                if stopZeitLoop:
+                    break
+            if stopZeitLoop:
+                break
         else:
             break
 
@@ -418,8 +465,5 @@ thread1.start()
 # Fensterloop
 print "Beenden Knopf einbauen und Fenster anzeigen\n"
 
-# Beenden Knopf
-buttonExit = Button(master=window, text="X", bg=BGCOLOR, fg="lightgrey", relief='flat', command=window.destroy)
-buttonExit.place(x = 460, y = 0, width = 20, height = 20)
-
 window.mainloop()
+print 'Beende Anzeige'
