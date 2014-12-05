@@ -22,9 +22,10 @@ t = localtime()
 tj = localtime()
 aktD = {}
 alD = {}
-gelberText = u'Das Wetter ist potenziell gefährlich. Die vorhergesagten Wetterphänomene sind nicht wirklich ungewöhnlich, aber eine erhöhte Aufmerksamkeit ist angebracht. Gehen Sie keine vermeidbaren Risiken ein.'
-orangerText = u'Das Wetter ist gefährlich. Ungewöhnliche meteorologische Phänomene wurden vorhergesagt. Schäden und Unfälle sind wahrscheinlich. Seien Sie sehr aufmerksam und vorsichtig.'
-roterText = u'Das Wetter ist sehr gefährlich. Ungewöhnlich intensive meteorologische Phänomene wurden vorhergesagt. Extreme Schäden und Unfälle, oft über größere Flächen, bedrohen Leben sowie Hab und Gut.'
+warte = 60
+gelberText = u' Das Wetter ist potenziell gefährlich. Die vorhergesagten Wetterphänomene sind nicht wirklich ungewöhnlich, aber eine erhöhte Aufmerksamkeit ist angebracht. Gehen Sie keine vermeidbaren Risiken ein.'
+orangerText = u' Das Wetter ist gefährlich. Ungewöhnliche meteorologische Phänomene wurden vorhergesagt. Schäden und Unfälle sind wahrscheinlich. Seien Sie sehr aufmerksam und vorsichtig.'
+roterText = u' Das Wetter ist sehr gefährlich. Ungewöhnlich intensive meteorologische Phänomene wurden vorhergesagt. Extreme Schäden und Unfälle, oft über größere Flächen, bedrohen Leben sowie Hab und Gut.'
 
 class myThread(threading.Thread):
     def __init__(self, threadID, name):
@@ -44,15 +45,15 @@ def beenden():
     window.destroy()
 
 def alarmText():
-    global alD
+    global alD, warte
+    warte = 60
     print "erzeuge Alarm Texte"
     buttonAlarm.config(text='zurück', bg='white', fg='black', command=jetzt)
     Tj.delete(1.0, END)
     #if len(alD['alerts'])
     TjI.place(x = 25,  y = 50,  width = 0,  height = 0 )
     Tj.insert(INSERT, '\t' + 'Alarm 1\n', 'ueberschrift')
-
-    Tj.insert(END, u(alD['alerts'][0]['message'])+'\n','normal')
+    Tj.insert(END, alD['alerts'][0]['message'].replace(u'&nbsp)', '').replace(u'\n','').encode('latin'), 'normal')
     if alD['alerts'][0]['level_meteoalarm_name'] == 'Yellow':
         Tj.config(bg='yellow')
         Tj.insert(END, gelberText, 'zusatz')
@@ -150,7 +151,7 @@ regenI = PhotoImage(file = './regen.pgm')
 #Formate definieren
 Tj = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
 Tj.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), tabs = ('1c', CENTER))
-Tj.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('2,5c'))
+Tj.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('2,5c'), wrap = WORD)
 Tj.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-12))
 Tj.tag_configure('tempHeiss', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkred', tabs = ('2,5c', NUMERIC))
 Tj.tag_configure('tempKalt', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkblue', tabs = ('2,5c', NUMERIC))
@@ -211,14 +212,14 @@ T3I.place(x = 330, y = 253, width = 51,  height = 51 )
 # Knöpfe
 buttonAlarm = Button(master=window, text='', bg="white", fg="black", relief='flat', command=jetzt)
 buttonExit = Button(master=window, text="X", bg=BGCOLOR, fg="lightgrey", relief='flat', command=beenden)
-buttonAlarm.place(x = 395, y = 0, width = 65, height = 30)
+buttonAlarm.place(x = 400, y = 130, width = 80, height = 96)
 buttonExit.place( x = 460, y = 0, width = 20, height = 20)
 
 # Funktion um entweder einmalig zum Testen (mitLoop = 0) per Funktionsaufruf benutzt zu werden, oder mitLoop = 1
 # für die Nutzung in einem separaten Thread, der dann pro Minute die Anzeige aktualisiert (für die Anzeige der
 # Minuten seit Aktualisierung) und alle 20 Min (1200 Sekunden) die Daten neu abfragt
 def ZeitLoop(mitLoop):
-    global TjWTag, t, tj, aktD, alD, filenameIj
+    global TjWTag, t, tj, aktD, alD, filenameIj, warte
     tl = 0
     while True:
 
@@ -464,10 +465,10 @@ def ZeitLoop(mitLoop):
 
         global stopZeitLoop
         if mitLoop:
-            c = 60
-            while c:
+            warte = 60
+            while warte:
                 sleep(1)
-                c -= 1
+                warte -= 1
                 if stopZeitLoop:
                     break
             if stopZeitLoop:
