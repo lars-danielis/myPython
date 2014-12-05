@@ -48,11 +48,20 @@ def alarmText():
     print "erzeuge Alarm Texte"
     buttonAlarm.config(text='zurück', bg='white', fg='black', command=jetzt)
     Tj.delete(1.0, END)
-    Tj.config(bg='yellow')
+    #if len(alD['alerts'])
     TjI.place(x = 25,  y = 50,  width = 0,  height = 0 )
     Tj.insert(INSERT, '\t' + 'Alarm 1\n', 'ueberschrift')
-    Tj.insert(END, 'Meldung, blabla\n','normal')
-    Tj.insert(END, gelberText, 'zusatz')
+
+    Tj.insert(END, u(alD['alerts'][0]['message'])+'\n','normal')
+    if alD['alerts'][0]['level_meteoalarm_name'] == 'Yellow':
+        Tj.config(bg='yellow')
+        Tj.insert(END, gelberText, 'zusatz')
+    elif alD['alerts'][0]['level_meteoalarm_name'] == 'Orange':
+        Tj.config(bg='orange')
+        Tj.insert(END, orangerText, 'zusatz')
+    elif alD['alerts'][0]['level_meteoalarm_name'] == 'Red':
+        Tj.insert(END, roterText, 'zusatz')
+        Tj.config(bg='red')
 
 def jetzt():
     global TjWTag, t, tj, aktD, aldD, filenameIj
@@ -113,8 +122,8 @@ def jetzt():
             buttonText += ' Alarme'
         buttonAlarm.config(text=buttonText, bg="yellow", fg="black", command=alarmText)
     else:
-        buttonAlarm.config(text='Alarm', bg="yellow", fg="black", command=alarmText)
-        #buttonAlarm.config(text='', bg='white', command = jetzt)
+        #buttonAlarm.config(text='Alarm', bg="yellow", fg="black", command=alarmText)
+        buttonAlarm.config(text='', bg='white', command = jetzt)
 
 locale.setlocale(locale.LC_ALL,'')
 
@@ -180,6 +189,13 @@ T1I = Text(master=window, relief = 'flat', borderwidth = 0)
 T2I = Text(master=window, relief = 'flat', borderwidth = 0)
 T3I = Text(master=window, relief = 'flat', borderwidth = 0)
 
+fehler = PhotoImage(file = './fehler.pgm')
+TjI.image_create(INSERT, image=fehler)
+T0I.image_create(INSERT, image=fehler)
+T1I.image_create(INSERT, image=fehler)
+T2I.image_create(INSERT, image=fehler)
+T3I.image_create(INSERT, image=fehler)
+
 # Text-Labels mit Text in Fenster einbauen und anordnen
 Tj.place( x = 0,   y = 0,   width = 481, height = 135)
 T0.place( x = 0,   y = 130, width = 481, height = 100)
@@ -236,6 +252,7 @@ def ZeitLoop(mitLoop):
                 try:
                     filenameIj = wget.download(iconUrlIj)           # Icon dowloaden
                     imgIj = PhotoImage(file = filenameIj)
+                    TjI.delete(1.0, END)
                     TjI.image_create(INSERT, image=imgIj)
                 except IOError:
                     filenameIj = './fehler.pgm'
