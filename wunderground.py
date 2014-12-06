@@ -10,6 +10,8 @@ from glob import glob
 import os
 from Tkinter import *
 import threading
+import sys
+import Adafruit_DHT
 
 BGCOLOR = "white"
 WEISS = "#FFF"
@@ -71,6 +73,10 @@ def jetzt():
     Tj.delete(1.0, END)
     Tj.config(bg=BGCOLOR)
     TjI.place(x = 25,  y = 50,  width = 51,  height = 51 )
+    feuchteInnen, temperaturInnen = Adafruit_DHT.read_retry(Adafruit_DHT.AM2302,26)
+    if feuchteInnen is None and temperaturInnen is None:
+        feuchteInnen = 0.0
+        temperaturInnen = 0.0
     Tj.insert(INSERT, '\t' + TjWTag, 'ueberschrift')
     Tj.insert(END, '  letzte Aktualisierung vor ' + str(int((t-tj)/60)) +' Minuten\n', 'zusatz')
     #Tj.insert(END, ' \n', 'leer')
@@ -80,12 +86,17 @@ def jetzt():
         Tj.insert(END, '\t' + str(aktD['current_observation']['temp_c']) + u"°C ", 'tempKalt')
     else:
         Tj.insert(END, '\t' + str(aktD['current_observation']['temp_c']) + u"°C ", 'tempNormal')
-    Tj.insert(END,   u'fühlt sich an wie ' + aktD['current_observation']['feelslike_c'] + u"°C\n", 'zusatz')
+    Tj.insert(END,   u'fühlt sich an wie ' + aktD['current_observation']['feelslike_c'] + u"°C", 'zusatz')
+    Tj.insert(END, '\t{0:0.1f}'.format(temperaturInnen)+ u"°C innen\n", 'tempNormal')
 
     # Luftfeuchtigkeit jetzt
     Tj.insert(END, '\t', 'normal')
     Tj.image_create(END, image=tropfenI)
-    Tj.insert(END, ' ' + aktD['current_observation']['relative_humidity'] + '\n', 'normal')
+    Tj.insert(END, ' ' + aktD['current_observation']['relative_humidity'], 'normal')
+    Tj.insert
+    Tj.insert(END, '\t', 'normal')
+    #Tj.image_create(END, image=tropfenI)
+    Tj.insert(END, '\t{0:0.1f}'.format(feuchteInnen)+ u"% innen\n", 'normal')
 
     # Luftdruck jetzt und Tendenz
     Tj.insert(END, '\t', 'normal')
@@ -151,12 +162,12 @@ regenI = PhotoImage(file = './regen.pgm')
 #Formate definieren
 Tj = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
 Tj.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), tabs = ('1c', CENTER))
-Tj.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('2,5c'), wrap = WORD)
+Tj.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('3c','8c', NUMERIC), wrap = WORD)
 Tj.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-12))
-Tj.tag_configure('tempHeiss', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkred', tabs = ('2,5c', NUMERIC))
-Tj.tag_configure('tempKalt', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkblue', tabs = ('2,5c', NUMERIC))
-Tj.tag_configure('tempNormal', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkgreen', tabs = ('2,5c', NUMERIC))
-Tj.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,5c'), wrap = WORD)
+Tj.tag_configure('tempHeiss', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkred', tabs = ('3c', NUMERIC, '8c', NUMERIC))
+Tj.tag_configure('tempKalt', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkblue', tabs = ('3', NUMERIC, '8c', NUMERIC))
+Tj.tag_configure('tempNormal', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkgreen', tabs = ('3', NUMERIC, '8c', NUMERIC))
+Tj.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('3','8c',NUMERIC), wrap = WORD)
 
 T0 = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
 T0.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'), tabs = ('2,5c', '5,5c'))
@@ -232,7 +243,7 @@ def ZeitLoop(mitLoop):
             print "versuche aktuelle Werte und Icon zu holen ...",
             try:
                 akt = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/conditions/lang:DL/pws:1/q/pws:ibadenwr274.json")
-                aktD = akt.json()
+                aktD = akt.json
                 print "erfolgreich"
 
                 # Zeitstempel der Wetterdaten holen, parsen und in deutsches Format wandeln
@@ -265,7 +276,7 @@ def ZeitLoop(mitLoop):
             print "versuche Vorhersagen und Icons zu holen ...",
             try:
                 vor = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/forecast/lang:DL/pws:1/q/pws:ibadenwr274.json")
-                vorD = vor.json()
+                vorD = vor.json
                 print "erfolgreich"
 
                 print "hole Vorhersage-Icons"
@@ -320,7 +331,7 @@ def ZeitLoop(mitLoop):
             print "versuche astronomische Werte zu holen ...",
             try:
                 ast = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/astronomy/lang:DL/pws:1/q/pws:ibadenwr274.json")
-                astD = ast.json()
+                astD = ast.json
                 print "erfolgreich,"
             except requests.exceptions.ConnectionError:
                 print "keine Verbindung"
@@ -328,7 +339,7 @@ def ZeitLoop(mitLoop):
             print "versuche Alarme zu holen ...",
             try:
                 al = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/alerts/lang:DL/pws:1/q/pws:ibadenwr274.json")
-                alD = al.json()
+                alD = al.json
                 print "erfolgreich,"
             except requests.exceptions.ConnectionError:
                 print "keine Verbindung"
