@@ -25,6 +25,7 @@ tj = localtime()
 aktD = {}
 alD = {}
 warte = 60
+nummer = 0
 gelberText = u' Das Wetter ist potenziell gefährlich. Die vorhergesagten Wetterphänomene sind nicht wirklich ungewöhnlich, aber eine erhöhte Aufmerksamkeit ist angebracht. Gehen Sie keine vermeidbaren Risiken ein.'
 orangerText = u' Das Wetter ist gefährlich. Ungewöhnliche meteorologische Phänomene wurden vorhergesagt. Schäden und Unfälle sind wahrscheinlich. Seien Sie sehr aufmerksam und vorsichtig.'
 roterText = u' Das Wetter ist sehr gefährlich. Ungewöhnlich intensive meteorologische Phänomene wurden vorhergesagt. Extreme Schäden und Unfälle, oft über größere Flächen, bedrohen Leben sowie Hab und Gut.'
@@ -39,37 +40,45 @@ class myThread(threading.Thread):
         ZeitLoop(1)
         print "Beende " + self.name
 
-
 def beenden():
     global stopZeitLoop
     stopZeitLoop = TRUE
     window.destroy()
     thread1.join()
 
+def nextAlarm():
+    global nummer
+    nummer += 1
+    alarmText()
+
 def alarmText():
-    global alD, warte
+    global alD, warte, nummer
     warte = 60
     print "erzeuge Alarm Texte"
-    buttonAlarm.config(text='zurück', bg='white', fg='black', command=jetzt)
     Tj.delete(1.0, END)
-    #if len(alD['alerts'])
     TjI.place(x = 25,  y = 50,  width = 0,  height = 0 )
-    Tj.insert(INSERT, '\t' + 'Alarm 1\n', 'ueberschrift')
-    Tj.insert(END, alD['alerts'][0]['message'].replace(u'&nbsp)', '').replace(u'\n','').encode('latin'), 'normal')
-    if alD['alerts'][0]['level_meteoalarm_name'] == 'Yellow':
+    Tj.insert(INSERT, '\t' + 'Alarm ' + (str(nummer+1)) + '\n', 'ueberschrift')
+    Tj.insert(END, alD['alerts'][nummer]['message'].replace(u'&nbsp)', '').replace(u'\n','').encode('latin'), 'normal')
+    if alD['alerts'][nummer]['level_meteoalarm_name'] == 'Yellow':
         Tj.config(bg='yellow')
         Tj.insert(END, gelberText, 'zusatz')
-    elif alD['alerts'][0]['level_meteoalarm_name'] == 'Orange':
+    elif alD['alerts'][nummer]['level_meteoalarm_name'] == 'Orange':
         Tj.config(bg='orange')
         Tj.insert(END, orangerText, 'zusatz')
-    elif alD['alerts'][0]['level_meteoalarm_name'] == 'Red':
+    elif alD['alerts'][nummer]['level_meteoalarm_name'] == 'Red':
         Tj.insert(END, roterText, 'zusatz')
         Tj.config(bg='red')
+    if (nummer + 2) > len(alD['alerts']):
+        buttonAlarm.config(text='zurück', bg='white', fg='black', command=jetzt)
+    else:
+        buttonAlarm.config(text='Nächster', bg='white', fg='black', command=nextAlarm)
+
 
 def jetzt():
-    global TjWTag, t, tj, aktD, aldD, filenameIj
+    global TjWTag, t, tj, aktD, aldD, filenameIj, nummer
     print "erzeuge Texte für aktuelle Werte je Minute"
     # Wetter jetzt
+    nummer = 0
     Tj.delete(1.0, END)
     Tj.config(bg=BGCOLOR)
     TjI.place(x = 25,  y = 50,  width = 51,  height = 51 )
