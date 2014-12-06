@@ -17,7 +17,18 @@ BGCOLOR = "white"
 WEISS = "#FFF"
 SCHRIFTGROESSE = 13
 
-stopZeitLoop = FALSE
+class myThread(threading.Thread):
+    def __init__(self, threadID, name):
+        threading.Thread.__init__(self)
+        self.ThreadID = threadID
+        self.name = name
+    def run(self):
+        print "Starte " + self.name
+        ZeitLoop()
+        print "Beende " + self.name
+
+process = myThread(10, 'Zeitprozess')
+runZeitLoop = TRUE
 TjWTag = ''
 filenameIj = ''
 t = localtime()
@@ -30,21 +41,12 @@ gelberText = u' Das Wetter ist potenziell gefährlich. Die vorhergesagten Wetter
 orangerText = u' Das Wetter ist gefährlich. Ungewöhnliche meteorologische Phänomene wurden vorhergesagt. Schäden und Unfälle sind wahrscheinlich. Seien Sie sehr aufmerksam und vorsichtig.'
 roterText = u' Das Wetter ist sehr gefährlich. Ungewöhnlich intensive meteorologische Phänomene wurden vorhergesagt. Extreme Schäden und Unfälle, oft über größere Flächen, bedrohen Leben sowie Hab und Gut.'
 
-class myThread(threading.Thread):
-    def __init__(self, threadID, name):
-        threading.Thread.__init__(self)
-        self.ThreadID = threadID
-        self.name = name
-    def run(self):
-        print "Starte " + self.name
-        ZeitLoop(1)
-        print "Beende " + self.name
-
 def beenden():
-    global stopZeitLoop
-    stopZeitLoop = TRUE
+    global runZeitLoop
+    print 'beenden eingeleitet'
+    runZeitLoop = FALSE
+    #thread1.join()
     window.destroy()
-    thread1.join()
 
 def nextAlarm():
     global nummer
@@ -58,7 +60,7 @@ def alarmText():
     Tj.delete(1.0, END)
     TjI.place(x = 25,  y = 50,  width = 0,  height = 0 )
     Tj.insert(INSERT, '\t' + 'Alarm ' + (str(nummer+1)) + '\n', 'ueberschrift')
-    Tj.insert(END, alD['alerts'][nummer]['message'].replace(u'&nbsp)', '').replace(u'\n','').encode('latin'), 'normal')
+    Tj.insert(END, alD['alerts'][nummer]['message'].replace(u'&nbsp)', '').replace(u'\n','').replace(u')','').encode('latin'), 'normal')
     if alD['alerts'][nummer]['level_meteoalarm_name'] == 'Yellow':
         Tj.config(bg='yellow')
         Tj.insert(END, gelberText, 'zusatz')
@@ -69,178 +71,17 @@ def alarmText():
         Tj.insert(END, roterText, 'zusatz')
         Tj.config(bg='red')
     if (nummer + 2) > len(alD['alerts']):
-        buttonAlarm.config(text='zurück', bg='white', fg='black', command=jetzt)
+        buttonAlarm.config(text='zurück', command=jetzt)
     else:
-        buttonAlarm.config(text='Nächster', bg='white', fg='black', command=nextAlarm)
-
-
-def jetzt():
-    global TjWTag, t, tj, aktD, aldD, filenameIj, nummer
-    print "erzeuge Texte für aktuelle Werte je Minute"
-    # Wetter jetzt
-    nummer = 0
-    Tj.delete(1.0, END)
-    Tj.config(bg=BGCOLOR)
-    TjI.place(x = 25,  y = 50,  width = 51,  height = 51 )
-    feuchteInnen, temperaturInnen = Adafruit_DHT.read_retry(Adafruit_DHT.AM2302,26)
-    #feuchteInnen = 0.0
-    #temperaturInnen = 0.0
-    if feuchteInnen is None and temperaturInnen is None:
-        feuchteInnen = 0.0
-        temperaturInnen = 0.0
-    Tj.insert(INSERT, '\t' + TjWTag, 'ueberschrift')
-    Tj.insert(END, '  letzte Aktualisierung vor ' + str(int((t-tj)/60)) +' Minuten\n', 'zusatz')
-    if aktD['current_observation']['temp_c'] > 20:
-        Tj.insert(END, '\t' + str(aktD['current_observation']['temp_c']) + u"°C ", 'tempHeiss')
-    elif aktD['current_observation']['temp_c'] < 0:
-        Tj.insert(END, '\t' + str(aktD['current_observation']['temp_c']) + u"°C ", 'tempKalt')
-    else:
-        Tj.insert(END, '\t' + str(aktD['current_observation']['temp_c']) + u"°C ", 'tempNormal')
-    Tj.insert(END,   u'fühlt sich an wie ' + aktD['current_observation']['feelslike_c'] + u"°C", 'zusatz')
-    Tj.insert(END, '\t{0:0.1f}'.format(temperaturInnen)+ u"°C innen\n", 'tempNormal')
-
-    # Luftfeuchtigkeit jetzt
-    Tj.insert(END, '\t', 'normal')
-    Tj.image_create(END, image=tropfenI)
-    Tj.insert(END, ' ' + aktD['current_observation']['relative_humidity'], 'normal')
-    #Tj.image_create(END, image=tropfenI)
-    Tj.insert(END, '\t{0:0.1f}'.format(feuchteInnen)+ u"%\n", 'normal')
-
-    # Luftdruck jetzt und Tendenz
-    Tj.insert(END, '\t', 'normal')
-    Tj.image_create(END, image=druckI)
-    Tj.insert(END, ' ' + aktD['current_observation']['pressure_mb'] + 'mbar ', 'zusatz')
-    if aktD['current_observation']['pressure_trend'] == '+':
-        Tj.insert(END,'steigend\n', 'zusatz')
-    elif aktD['current_observation']['pressure_trend'] == '-':
-        Tj.insert(END, 'fallend\n', 'zusatz')
-    else:
-        Tj.insert(END, 'gleichbleibend\n', 'zusatz')
-
-    # Wind jetzt und Niederschlag bis jetzt
-    Tj.insert(END, '\t', 'zusatz')
-    Tj.image_create(END, image=windI)
-    if aktD['current_observation']['wind_kph'] > 0:
-        Tj.insert(END, ' ' + str(aktD['current_observation']['wind_kph']) + "km/h aus ", 'zusatz')
-        Tj.insert(END, aktD['current_observation']['wind_dir'], 'zusatz')
-    else:
-        Tj.insert(END, ' 0 km/h', 'zusatz')
-    Tj.insert(END, ', ', 'zusatz')
-    if aktD['current_observation']['precip_today_metric'] == '0':
-        Tj.image_create(END, image = trockenI)
-    else:
-        Tj.image_create(END, image = regenI)
-        Tj.insert(END, ' ' + aktD['current_observation']['precip_today_metric'],'zusat')
-        Tj.insert(END, 'mm','zusatz')
-
-    # Alarme prüfen und wenn vorhanden den Knopf mit der Anzahl der Alarme anzeigen, sonst Knopf löschen
-    if len(alD['alerts']):
-        buttonText = str(len(alD['alerts']))
-        if len(alD['alerts']) == 1:
-             buttonText += ' Alarm'
-        else:
-            buttonText += ' Alarme'
-        buttonAlarm.config(text=buttonText, bg="yellow", fg="black", command=alarmText)
-    else:
-        #buttonAlarm.config(text='Alarm', bg="yellow", fg="black", command=alarmText)
-        buttonAlarm.config(text='', bg='white', command = jetzt)
-
-locale.setlocale(locale.LC_ALL,'')
-
-# Fenster anlegen
-print "baue Fenster"
-window = Tk()
-window.overrideredirect(True)
-window.geometry("480x320+0+0")
-
-# konstante Icons laden
-mondI0 = PhotoImage(file = './mond04.pgm')
-mondI1 = PhotoImage(file = './mond14.pgm')
-mondI2 = PhotoImage(file = './mond24.pgm')
-mondI3 = PhotoImage(file = './mond34.pgm')
-mondI4 = PhotoImage(file = './mond44.pgm')
-sonneI = PhotoImage(file = './sonne.pgm')
-tropfenI = PhotoImage(file = './tropfen.pgm')
-trockenI = PhotoImage(file = './trocken.pgm')
-druckI = PhotoImage(file = './druck.pgm')
-windI = PhotoImage(file = './wind.pgm')
-schneeI = PhotoImage(file = './schnee.pgm')
-regenI = PhotoImage(file = './regen.pgm')
-
-#Formate definieren
-Tj = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
-Tj.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), tabs = ('1c', CENTER))
-Tj.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('2,7c','8,7c', NUMERIC), wrap = WORD)
-Tj.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-12))
-Tj.tag_configure('tempHeiss', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkred', tabs = ('2,7c', NUMERIC, '8,7c', NUMERIC))
-Tj.tag_configure('tempKalt', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkblue', tabs = ('2,7c', NUMERIC, '8,7c', NUMERIC))
-Tj.tag_configure('tempNormal', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkgreen', tabs = ('2,7c', NUMERIC, '8,7c', NUMERIC))
-Tj.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,7c','8,7c',NUMERIC), wrap = WORD)
-
-T0 = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
-T0.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'), tabs = ('2,5c', '5,5c'))
-T0.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('2,7c', NUMERIC, '5,5c'))
-T0.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-10))
-T0.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,7c', '5,5c'))
-T0.tag_configure('zusatzregen', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,6c', '5,5c'))
-
-T1 = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
-T1.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'))
-T1.tag_configure('normal', font=("Arial", SCHRIFTGROESSE - 1), tabs = ('2,3c', NUMERIC))
-T1.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-9))
-T1.tag_configure('zusatzregen', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,2c'))
-
-T2 = Text(master=window, relief = 'flat', bd = 0, bg = BGCOLOR)
-T2.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'))
-T2.tag_configure('normal', font=("Arial", SCHRIFTGROESSE - 1), tabs = ('2,3c', NUMERIC))
-T2.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-9))
-T2.tag_configure('zusatzregen', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,2c'))
-
-T3 = Text(master=window, relief = 'flat', bd = 0, bg = BGCOLOR)
-T3.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'))
-T3.tag_configure('normal', font=("Arial", SCHRIFTGROESSE - 1), tabs = ('2,3c', NUMERIC))
-T3.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-9))
-T3.tag_configure('zusatzregen', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,2c'))
-
-# Formate für die Vorhersagebilder
-TjI = Text(master=window, relief = 'flat', borderwidth = 0)
-T0I = Text(master=window, relief = 'flat', borderwidth = 0)
-T1I = Text(master=window, relief = 'flat', borderwidth = 0)
-T2I = Text(master=window, relief = 'flat', borderwidth = 0)
-T3I = Text(master=window, relief = 'flat', borderwidth = 0)
-
-fehler = PhotoImage(file = './fehler.pgm')
-TjI.image_create(INSERT, image=fehler)
-T0I.image_create(INSERT, image=fehler)
-T1I.image_create(INSERT, image=fehler)
-T2I.image_create(INSERT, image=fehler)
-T3I.image_create(INSERT, image=fehler)
-
-# Text-Labels mit Text in Fenster einbauen und anordnen
-Tj.place( x = 0,   y = 0,   width = 481, height = 135)
-T0.place( x = 0,   y = 130, width = 481, height = 100)
-T1.place( x = 0,   y = 225, width = 161, height = 96 )
-T2.place( x = 160, y = 225, width = 161, height = 96 )
-T3.place( x = 320, y = 225, width = 161, height = 96 )
-TjI.place(x = 25,  y = 50,  width = 51,  height = 51 )
-T0I.place(x = 25,  y = 160, width = 51,  height = 51 )
-T1I.place(x = 10,  y = 253, width = 51,  height = 51 )
-T2I.place(x = 170, y = 253, width = 51,  height = 51 )
-T3I.place(x = 330, y = 253, width = 51,  height = 51 )
-
-# Knöpfe
-buttonAlarm = Button(master=window, text='', bg="white", fg="black", relief='flat', command=jetzt)
-buttonExit = Button(master=window, text="X", bg=BGCOLOR, fg="lightgrey", relief='flat', command=beenden)
-buttonAlarm.place(x = 400, y = 130, width = 80, height = 96)
-buttonExit.place( x = 460, y = 0, width = 20, height = 20)
+        buttonAlarm.config(text='Nächster', command=nextAlarm)
 
 # Funktion um entweder einmalig zum Testen (mitLoop = 0) per Funktionsaufruf benutzt zu werden, oder mitLoop = 1
 # für die Nutzung in einem separaten Thread, der dann pro Minute die Anzeige aktualisiert (für die Anzeige der
 # Minuten seit Aktualisierung) und alle 20 Min (1200 Sekunden) die Daten neu abfragt
-def ZeitLoop(mitLoop):
-    global TjWTag, t, tj, aktD, alD, filenameIj, warte, stopZeitLoop
+def ZeitLoop():
+    global TjWTag, t, tj, aktD, alD, filenameIj, warte, runZeitLoop
     tl = 0
-    while True:
+    while runZeitLoop:
 
         # aktuelle Zeit holen und prüfen ob die websites neu abgefragt werden sollen - alle 20min bzw. 1200s
         t = mktime(localtime())
@@ -251,7 +92,7 @@ def ZeitLoop(mitLoop):
             print "versuche aktuelle Werte und Icon zu holen ...",
             try:
                 akt = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/conditions/lang:DL/pws:1/q/pws:ibadenwr274.json")
-                aktD = akt.json
+                aktD = akt.json()
                 print "erfolgreich"
 
                 # Zeitstempel der Wetterdaten holen, parsen und in deutsches Format wandeln
@@ -284,7 +125,7 @@ def ZeitLoop(mitLoop):
             print "versuche Vorhersagen und Icons zu holen ...",
             try:
                 vor = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/forecast/lang:DL/pws:1/q/pws:ibadenwr274.json")
-                vorD = vor.json
+                vorD = vor.json()
                 print "erfolgreich"
 
                 print "hole Vorhersage-Icons"
@@ -339,7 +180,7 @@ def ZeitLoop(mitLoop):
             print "versuche astronomische Werte zu holen ...",
             try:
                 ast = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/astronomy/lang:DL/pws:1/q/pws:ibadenwr274.json")
-                astD = ast.json
+                astD = ast.json()
                 print "erfolgreich,"
             except requests.exceptions.ConnectionError:
                 print "keine Verbindung"
@@ -347,7 +188,7 @@ def ZeitLoop(mitLoop):
             print "versuche Alarme zu holen ...",
             try:
                 al = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/alerts/lang:DL/pws:1/q/pws:ibadenwr274.json")
-                alD = al.json
+                alD = al.json()
                 print "erfolgreich,"
             except requests.exceptions.ConnectionError:
                 print "keine Verbindung"
@@ -482,26 +323,180 @@ def ZeitLoop(mitLoop):
         # jetziges Wetter anzeigen
         jetzt()
 
-        if mitLoop:
-            warte = 60
-            while warte:
-                sleep(1)
-                warte -= 1
-                if stopZeitLoop:
-                    break
-            if stopZeitLoop:
-                break
+        warte = 60
+        while warte and runZeitLoop:
+            sleep(1)
+            warte -= 1
+    print 'beende Zeitloop'
+
+def jetzt():
+    global TjWTag, t, tj, aktD, aldD, filenameIj, nummer
+    print "erzeuge Texte für aktuelle Werte je Minute"
+    # Wetter jetzt
+    nummer = 0
+    Tj.delete(1.0, END)
+    Tj.config(bg=BGCOLOR)
+    TjI.place(x = 25,  y = 50,  width = 51,  height = 51 )
+    #feuchteInnen, temperaturInnen = Adafruit_DHT.read_retry(Adafruit_DHT.AM2302,26)
+    feuchteInnen = 0.0
+    temperaturInnen = 0.0
+    if feuchteInnen is None and temperaturInnen is None:
+        feuchteInnen = 0.0
+        temperaturInnen = 0.0
+    Tj.insert(INSERT, '\t' + TjWTag, 'ueberschrift')
+    Tj.insert(END, '  letzte Aktualisierung vor ' + str(int((t-tj)/60)) +' Minuten\n', 'zusatz')
+    if aktD['current_observation']['temp_c'] > 20:
+        Tj.insert(END, '\t' + str(aktD['current_observation']['temp_c']) + u"°C ", 'tempHeiss')
+    elif aktD['current_observation']['temp_c'] < 0:
+        Tj.insert(END, '\t' + str(aktD['current_observation']['temp_c']) + u"°C ", 'tempKalt')
+    else:
+        Tj.insert(END, '\t' + str(aktD['current_observation']['temp_c']) + u"°C ", 'tempNormal')
+    Tj.insert(END,   u'fühlt sich an wie ' + aktD['current_observation']['feelslike_c'] + u"°C", 'zusatz')
+    Tj.insert(END, '\t{0:0.1f}'.format(temperaturInnen)+ u"°C innen\n", 'tempNormal')
+
+    # Luftfeuchtigkeit jetzt
+    Tj.insert(END, '\t', 'normal')
+    Tj.image_create(END, image=tropfenI)
+    Tj.insert(END, ' ' + aktD['current_observation']['relative_humidity'], 'normal')
+    #Tj.image_create(END, image=tropfenI)
+    Tj.insert(END, '\t{0:0.1f}'.format(feuchteInnen)+ u"%\n", 'normal')
+
+    # Luftdruck jetzt und Tendenz
+    Tj.insert(END, '\t', 'normal')
+    Tj.image_create(END, image=druckI)
+    Tj.insert(END, ' ' + aktD['current_observation']['pressure_mb'] + 'mbar ', 'zusatz')
+    if aktD['current_observation']['pressure_trend'] == '+':
+        Tj.image_create(END, image=hoch)
+        Tj.insert(END, '\n', 'zusatz')
+    elif aktD['current_observation']['pressure_trend'] == '-':
+        Tj.image_create(END, image=runter)
+        Tj.insert(END, '\n', 'zusatz')
+    else:
+        Tj.insert(END, '\n', 'zusatz')
+
+    # Wind jetzt und Niederschlag bis jetzt
+    Tj.insert(END, '\t', 'zusatz')
+    Tj.image_create(END, image=windI)
+    if aktD['current_observation']['wind_kph'] > 0:
+        Tj.insert(END, ' ' + str(aktD['current_observation']['wind_kph']) + "km/h aus ", 'zusatz')
+        Tj.insert(END, aktD['current_observation']['wind_dir'], 'zusatz')
+    else:
+        Tj.insert(END, ' 0 km/h', 'zusatz')
+    Tj.insert(END, ', ', 'zusatz')
+    if aktD['current_observation']['precip_today_metric'] == '0':
+        Tj.image_create(END, image = trockenI)
+    else:
+        Tj.image_create(END, image = regenI)
+        Tj.insert(END, ' ' + aktD['current_observation']['precip_today_metric'],'zusat')
+        Tj.insert(END, 'mm','zusatz')
+
+    # Alarme prüfen und wenn vorhanden den Knopf mit der Anzahl der Alarme anzeigen, sonst Knopf löschen
+    if len(alD['alerts']):
+        buttonText = str(len(alD['alerts']))
+        if len(alD['alerts']) == 1:
+             buttonText += ' Alarm'
         else:
-            break
-        if stopZeitLoop:
-            break
+            buttonText += ' Alarme'
+        buttonAlarm.config(text=buttonText, bg="grey", command=alarmText)
+    else:
+        #buttonAlarm.config(text='Alarm', bg="yellow", fg="black", command=alarmText)
+        buttonAlarm.config(text='', bg='white', command = jetzt)
+
+locale.setlocale(locale.LC_ALL,'')
+
+# Fenster anlegen
+print "baue Fenster"
+window = Tk()
+window.overrideredirect(True)
+window.geometry("480x320+0+0")
+
+# konstante Icons laden
+mondI0 = PhotoImage(file = './mond04.pgm')
+mondI1 = PhotoImage(file = './mond14.pgm')
+mondI2 = PhotoImage(file = './mond24.pgm')
+mondI3 = PhotoImage(file = './mond34.pgm')
+mondI4 = PhotoImage(file = './mond44.pgm')
+sonneI = PhotoImage(file = './sonne.pgm')
+tropfenI = PhotoImage(file = './tropfen.pgm')
+trockenI = PhotoImage(file = './trocken.pgm')
+druckI = PhotoImage(file = './druck.pgm')
+windI = PhotoImage(file = './wind.pgm')
+schneeI = PhotoImage(file = './schnee.pgm')
+regenI = PhotoImage(file = './regen.pgm')
+hochI = PhotoImage(file = './hoch.pgm')
+runterI = PhotoImage(file = './runter.pgm')
+
+#Formate definieren
+Tj = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
+Tj.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), tabs = ('1c', CENTER))
+Tj.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('2,7c','8,7c', NUMERIC), wrap = WORD)
+Tj.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-12))
+Tj.tag_configure('tempHeiss', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkred', tabs = ('2,7c', NUMERIC, '8,7c', NUMERIC))
+Tj.tag_configure('tempKalt', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkblue', tabs = ('2,7c', NUMERIC, '8,7c', NUMERIC))
+Tj.tag_configure('tempNormal', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkgreen', tabs = ('2,7c', NUMERIC, '8,7c', NUMERIC))
+Tj.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,7c','8,7c',NUMERIC), wrap = WORD)
+
+T0 = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
+T0.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'), tabs = ('2,5c', '5,5c'))
+T0.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('2,7c', NUMERIC, '5,5c'))
+T0.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-10))
+T0.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,7c', '5,5c'))
+T0.tag_configure('zusatzregen', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,6c', '5,5c'))
+
+T1 = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
+T1.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'))
+T1.tag_configure('normal', font=("Arial", SCHRIFTGROESSE - 1), tabs = ('2,3c', NUMERIC))
+T1.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-9))
+T1.tag_configure('zusatzregen', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,2c'))
+
+T2 = Text(master=window, relief = 'flat', bd = 0, bg = BGCOLOR)
+T2.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'))
+T2.tag_configure('normal', font=("Arial", SCHRIFTGROESSE - 1), tabs = ('2,3c', NUMERIC))
+T2.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-9))
+T2.tag_configure('zusatzregen', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,2c'))
+
+T3 = Text(master=window, relief = 'flat', bd = 0, bg = BGCOLOR)
+T3.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'))
+T3.tag_configure('normal', font=("Arial", SCHRIFTGROESSE - 1), tabs = ('2,3c', NUMERIC))
+T3.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-9))
+T3.tag_configure('zusatzregen', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,2c'))
+
+# Formate für die Vorhersagebilder
+TjI = Text(master=window, relief = 'flat', borderwidth = 0)
+T0I = Text(master=window, relief = 'flat', borderwidth = 0)
+T1I = Text(master=window, relief = 'flat', borderwidth = 0)
+T2I = Text(master=window, relief = 'flat', borderwidth = 0)
+T3I = Text(master=window, relief = 'flat', borderwidth = 0)
+
+fehler = PhotoImage(file = './fehler.pgm')
+TjI.image_create(INSERT, image=fehler)
+T0I.image_create(INSERT, image=fehler)
+T1I.image_create(INSERT, image=fehler)
+T2I.image_create(INSERT, image=fehler)
+T3I.image_create(INSERT, image=fehler)
+
+# Text-Labels mit Text in Fenster einbauen und anordnen
+Tj.place( x = 0,   y = 0,   width = 481, height = 135)
+T0.place( x = 0,   y = 130, width = 481, height = 100)
+T1.place( x = 0,   y = 225, width = 161, height = 96 )
+T2.place( x = 160, y = 225, width = 161, height = 96 )
+T3.place( x = 320, y = 225, width = 161, height = 96 )
+TjI.place(x = 25,  y = 50,  width = 51,  height = 51 )
+T0I.place(x = 25,  y = 160, width = 51,  height = 51 )
+T1I.place(x = 10,  y = 253, width = 51,  height = 51 )
+T2I.place(x = 170, y = 253, width = 51,  height = 51 )
+T3I.place(x = 330, y = 253, width = 51,  height = 51 )
+
+# Knöpfe
+print u'Knöpfe einbauen'
+buttonAlarm = Button(master=window, text='', bg="white", fg="white", relief='flat', command=jetzt)
+buttonExit = Button(master=window, text="X", bg=BGCOLOR, fg="lightgrey", relief='flat', command=beenden)
+buttonAlarm.place(x = 400, y = 130, width = 80, height = 96)
+buttonExit.place( x = 460, y = 0, width = 20, height = 20)
 
 # starte Zeitloop in einem weiteren thread
-thread1 = myThread(1, "Zeitloop ")
-thread1.start()
-#ZeitLoop(0)
-# Fensterloop
-print "Beenden Knopf einbauen und Fenster anzeigen\n"
 
+print 'Starte Zeit- und Fensterprozess'
+process.start()
 window.mainloop()
 print 'Beende Anzeige'
