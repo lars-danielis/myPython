@@ -43,8 +43,8 @@ class myThread(threading.Thread):
 def beenden():
     global stopZeitLoop
     stopZeitLoop = TRUE
-    thread1.join()
     window.destroy()
+    thread1.join()
 
 def alarmText():
     global alD, warte
@@ -74,12 +74,13 @@ def jetzt():
     Tj.config(bg=BGCOLOR)
     TjI.place(x = 25,  y = 50,  width = 51,  height = 51 )
     feuchteInnen, temperaturInnen = Adafruit_DHT.read_retry(Adafruit_DHT.AM2302,26)
+    #feuchteInnen = 0.0
+    #temperaturInnen = 0.0
     if feuchteInnen is None and temperaturInnen is None:
         feuchteInnen = 0.0
         temperaturInnen = 0.0
     Tj.insert(INSERT, '\t' + TjWTag, 'ueberschrift')
     Tj.insert(END, '  letzte Aktualisierung vor ' + str(int((t-tj)/60)) +' Minuten\n', 'zusatz')
-    #Tj.insert(END, ' \n', 'leer')
     if aktD['current_observation']['temp_c'] > 20:
         Tj.insert(END, '\t' + str(aktD['current_observation']['temp_c']) + u"°C ", 'tempHeiss')
     elif aktD['current_observation']['temp_c'] < 0:
@@ -93,10 +94,8 @@ def jetzt():
     Tj.insert(END, '\t', 'normal')
     Tj.image_create(END, image=tropfenI)
     Tj.insert(END, ' ' + aktD['current_observation']['relative_humidity'], 'normal')
-    Tj.insert
-    Tj.insert(END, '\t', 'normal')
     #Tj.image_create(END, image=tropfenI)
-    Tj.insert(END, '\t{0:0.1f}'.format(feuchteInnen)+ u"% innen\n", 'normal')
+    Tj.insert(END, '\t{0:0.1f}'.format(feuchteInnen)+ u"%\n", 'normal')
 
     # Luftdruck jetzt und Tendenz
     Tj.insert(END, '\t', 'normal')
@@ -162,12 +161,12 @@ regenI = PhotoImage(file = './regen.pgm')
 #Formate definieren
 Tj = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
 Tj.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), tabs = ('1c', CENTER))
-Tj.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('3c','8c', NUMERIC), wrap = WORD)
+Tj.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('3c','9c', NUMERIC), wrap = WORD)
 Tj.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-12))
-Tj.tag_configure('tempHeiss', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkred', tabs = ('3c', NUMERIC, '8c', NUMERIC))
-Tj.tag_configure('tempKalt', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkblue', tabs = ('3', NUMERIC, '8c', NUMERIC))
-Tj.tag_configure('tempNormal', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkgreen', tabs = ('3', NUMERIC, '8c', NUMERIC))
-Tj.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('3','8c',NUMERIC), wrap = WORD)
+Tj.tag_configure('tempHeiss', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkred', tabs = ('3c', NUMERIC, '9c', NUMERIC))
+Tj.tag_configure('tempKalt', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkblue', tabs = ('3c', NUMERIC, '9c', NUMERIC))
+Tj.tag_configure('tempNormal', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkgreen', tabs = ('3c', NUMERIC, '9c', NUMERIC))
+Tj.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('3c','9c',NUMERIC), wrap = WORD)
 
 T0 = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
 T0.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'), tabs = ('2,5c', '5,5c'))
@@ -230,7 +229,7 @@ buttonExit.place( x = 460, y = 0, width = 20, height = 20)
 # für die Nutzung in einem separaten Thread, der dann pro Minute die Anzeige aktualisiert (für die Anzeige der
 # Minuten seit Aktualisierung) und alle 20 Min (1200 Sekunden) die Daten neu abfragt
 def ZeitLoop(mitLoop):
-    global TjWTag, t, tj, aktD, alD, filenameIj, warte
+    global TjWTag, t, tj, aktD, alD, filenameIj, warte, stopZeitLoop
     tl = 0
     while True:
 
@@ -474,7 +473,6 @@ def ZeitLoop(mitLoop):
         # jetziges Wetter anzeigen
         jetzt()
 
-        global stopZeitLoop
         if mitLoop:
             warte = 60
             while warte:
@@ -485,6 +483,8 @@ def ZeitLoop(mitLoop):
             if stopZeitLoop:
                 break
         else:
+            break
+        if stopZeitLoop:
             break
 
 # starte Zeitloop in einem weiteren thread
