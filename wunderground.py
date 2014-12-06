@@ -92,7 +92,9 @@ def ZeitLoop():
             print "versuche aktuelle Werte und Icon zu holen ...",
             try:
                 akt = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/conditions/lang:DL/pws:1/q/pws:ibadenwr274.json")
-                aktD = akt.json()
+                #rpi
+                #aktD = akt.json()
+                aktD = akt.json
                 print "erfolgreich"
 
                 # Zeitstempel der Wetterdaten holen, parsen und in deutsches Format wandeln
@@ -125,7 +127,9 @@ def ZeitLoop():
             print "versuche Vorhersagen und Icons zu holen ...",
             try:
                 vor = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/forecast/lang:DL/pws:1/q/pws:ibadenwr274.json")
-                vorD = vor.json()
+                #rpi
+                #vorD = vor.json()
+                vorD = vor.json
                 print "erfolgreich"
 
                 print "hole Vorhersage-Icons"
@@ -180,7 +184,9 @@ def ZeitLoop():
             print "versuche astronomische Werte zu holen ...",
             try:
                 ast = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/astronomy/lang:DL/pws:1/q/pws:ibadenwr274.json")
-                astD = ast.json()
+                #rpi
+                #astD = ast.json()
+                astD = ast.json
                 print "erfolgreich,"
             except requests.exceptions.ConnectionError:
                 print "keine Verbindung"
@@ -188,7 +194,9 @@ def ZeitLoop():
             print "versuche Alarme zu holen ...",
             try:
                 al = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/alerts/lang:DL/pws:1/q/pws:ibadenwr274.json")
-                alD = al.json()
+                #rpi
+                #alD = al.json()
+                alD = al.json
                 print "erfolgreich,"
             except requests.exceptions.ConnectionError:
                 print "keine Verbindung"
@@ -337,9 +345,10 @@ def jetzt():
     Tj.delete(1.0, END)
     Tj.config(bg=BGCOLOR)
     TjI.place(x = 25,  y = 50,  width = 51,  height = 51 )
-    #feuchteInnen, temperaturInnen = Adafruit_DHT.read_retry(Adafruit_DHT.AM2302,26)
-    feuchteInnen = 0.0
-    temperaturInnen = 0.0
+    #rpi
+    feuchteInnen, temperaturInnen = Adafruit_DHT.read_retry(Adafruit_DHT.AM2302,26)
+    #feuchteInnen = 0.0
+    #temperaturInnen = 0.0
     if feuchteInnen is None and temperaturInnen is None:
         feuchteInnen = 0.0
         temperaturInnen = 0.0
@@ -366,10 +375,10 @@ def jetzt():
     Tj.image_create(END, image=druckI)
     Tj.insert(END, ' ' + aktD['current_observation']['pressure_mb'] + 'mbar ', 'zusatz')
     if aktD['current_observation']['pressure_trend'] == '+':
-        Tj.image_create(END, image=hoch)
+        Tj.image_create(END, image=hochI)
         Tj.insert(END, '\n', 'zusatz')
     elif aktD['current_observation']['pressure_trend'] == '-':
-        Tj.image_create(END, image=runter)
+        Tj.image_create(END, image=runterI)
         Tj.insert(END, '\n', 'zusatz')
     else:
         Tj.insert(END, '\n', 'zusatz')
