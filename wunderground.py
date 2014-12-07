@@ -37,9 +37,9 @@ aktD = {}
 alD = {}
 warte = 60
 nummer = 0
-gelberText = u' Das Wetter ist potenziell gefährlich. Die vorhergesagten Wetterphänomene sind nicht wirklich ungewöhnlich, aber eine erhöhte Aufmerksamkeit ist angebracht. Gehen Sie keine vermeidbaren Risiken ein.'
-orangerText = u' Das Wetter ist gefährlich. Ungewöhnliche meteorologische Phänomene wurden vorhergesagt. Schäden und Unfälle sind wahrscheinlich. Seien Sie sehr aufmerksam und vorsichtig.'
-roterText = u' Das Wetter ist sehr gefährlich. Ungewöhnlich intensive meteorologische Phänomene wurden vorhergesagt. Extreme Schäden und Unfälle, oft über größere Flächen, bedrohen Leben sowie Hab und Gut.'
+gelberText =  u'\nDas Wetter ist potenziell gefährlich. Die vorhergesagten Wetterphänomene sind nicht wirklich ungewöhnlich, aber eine erhöhte Aufmerksamkeit ist angebracht.'
+orangerText = u'\nDas Wetter ist gefährlich. Ungewöhnliche meteorologische Phänomene wurden vorhergesagt. Schäden und Unfälle sind wahrscheinlich.'
+roterText =   u'\nDas Wetter ist sehr gefährlich. Ungewöhnlich intensive meteorologische Phänomene wurden vorhergesagt. Extreme Schäden und Unfälle bedrohen Leben, Hab und Gut.'
 
 def beenden():
     global runZeitLoop
@@ -347,13 +347,14 @@ def jetzt():
     TjI.place(x = 25,  y = 50,  width = 51,  height = 51 )
     #rpi
     feuchteInnen, temperaturInnen = Adafruit_DHT.read_retry(Adafruit_DHT.AM2302,26)
-    #feuchteInnen = 0.0
-    #temperaturInnen = 0.0
+    #feuchteInnen = 0.0; temperaturInnen = 0.0
     if feuchteInnen is None and temperaturInnen is None:
-        feuchteInnen = 0.0
-        temperaturInnen = 0.0
+        feuchteInnen = 0.0; temperaturInnen = 0.0
     Tj.insert(INSERT, '\t' + TjWTag, 'ueberschrift')
     Tj.insert(END, '  letzte Aktualisierung vor ' + str(int((t-tj)/60)) +' Minuten\n', 'zusatz')
+
+    Tj.insert(END, ' \n', 'leer')
+
     if aktD['current_observation']['temp_c'] > 20:
         Tj.insert(END, '\t' + str(aktD['current_observation']['temp_c']) + u"°C ", 'tempHeiss')
     elif aktD['current_observation']['temp_c'] < 0:
@@ -363,41 +364,42 @@ def jetzt():
     Tj.insert(END,   u'fühlt sich an wie ' + aktD['current_observation']['feelslike_c'] + u"°C", 'zusatz')
     Tj.insert(END, '\t{0:0.1f}'.format(temperaturInnen)+ u"°C innen\n", 'tempNormal')
 
+    Tj.insert(END, ' \n', 'leer')
+
     # Luftfeuchtigkeit jetzt
     Tj.insert(END, '\t', 'normal')
     Tj.image_create(END, image=tropfenI)
     Tj.insert(END, ' ' + aktD['current_observation']['relative_humidity'], 'normal')
-    #Tj.image_create(END, image=tropfenI)
     Tj.insert(END, '\t{0:0.1f}'.format(feuchteInnen)+ u"%\n", 'normal')
 
     # Luftdruck jetzt und Tendenz
     Tj.insert(END, '\t', 'normal')
     Tj.image_create(END, image=druckI)
-    Tj.insert(END, ' ' + aktD['current_observation']['pressure_mb'] + 'mbar ', 'zusatz')
+    Tj.insert(END, ' ' + aktD['current_observation']['pressure_mb'] + 'mbar ', 'normal')
     if aktD['current_observation']['pressure_trend'] == '+':
         Tj.image_create(END, image=hochI)
-        Tj.insert(END, '\n', 'zusatz')
+        Tj.insert(END, '\n', 'normal')
     elif aktD['current_observation']['pressure_trend'] == '-':
         Tj.image_create(END, image=runterI)
-        Tj.insert(END, '\n', 'zusatz')
+        Tj.insert(END, '\n', 'normal')
     else:
-        Tj.insert(END, '\n', 'zusatz')
+        Tj.insert(END, '\n', 'normal')
 
     # Wind jetzt und Niederschlag bis jetzt
-    Tj.insert(END, '\t', 'zusatz')
-    Tj.image_create(END, image=windI)
-    if aktD['current_observation']['wind_kph'] > 0:
-        Tj.insert(END, ' ' + str(aktD['current_observation']['wind_kph']) + "km/h aus ", 'zusatz')
-        Tj.insert(END, aktD['current_observation']['wind_dir'], 'zusatz')
-    else:
-        Tj.insert(END, ' 0 km/h', 'zusatz')
-    Tj.insert(END, ', ', 'zusatz')
-    if aktD['current_observation']['precip_today_metric'] == '0':
-        Tj.image_create(END, image = trockenI)
-    else:
-        Tj.image_create(END, image = regenI)
-        Tj.insert(END, ' ' + aktD['current_observation']['precip_today_metric'],'zusat')
-        Tj.insert(END, 'mm','zusatz')
+    #Tj.insert(END, '\t', 'zusatz')
+    #Tj.image_create(END, image=windI)
+    #if aktD['current_observation']['wind_kph'] > 0:
+    #    Tj.insert(END, ' ' + str(aktD['current_observation']['wind_kph']) + "km/h aus ", 'zusatz')
+    #    Tj.insert(END, aktD['current_observation']['wind_dir'], 'zusatz')
+    #else:
+    #    Tj.insert(END, ' 0 km/h', 'zusatz')
+    #Tj.insert(END, ', ', 'zusatz')
+    #if aktD['current_observation']['precip_today_metric'] == '0':
+    #    Tj.image_create(END, image = trockenI)
+    #else:
+    #    Tj.image_create(END, image = regenI)
+    #    Tj.insert(END, ' ' + aktD['current_observation']['precip_today_metric'],'zusat')
+    #    Tj.insert(END, 'mm','zusatz')
 
     # Alarme prüfen und wenn vorhanden den Knopf mit der Anzahl der Alarme anzeigen, sonst Knopf löschen
     if len(alD['alerts']):
@@ -439,7 +441,7 @@ runterI = PhotoImage(file = './runter.pgm')
 Tj = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
 Tj.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), tabs = ('1c', CENTER))
 Tj.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('2,7c','8,7c', NUMERIC), wrap = WORD)
-Tj.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-12))
+Tj.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-7))
 Tj.tag_configure('tempHeiss', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkred', tabs = ('2,7c', NUMERIC, '8,7c', NUMERIC))
 Tj.tag_configure('tempKalt', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkblue', tabs = ('2,7c', NUMERIC, '8,7c', NUMERIC))
 Tj.tag_configure('tempNormal', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkgreen', tabs = ('2,7c', NUMERIC, '8,7c', NUMERIC))
