@@ -11,10 +11,13 @@ import os
 from Tkinter import *
 import threading
 import sys
+#rpi
 import Adafruit_DHT
 
 BGCOLOR = "white"
 WEISS = "#FFF"
+#rpi
+#SCHRIFTGROESSE = 10
 SCHRIFTGROESSE = 13
 
 class myThread(threading.Thread):
@@ -59,7 +62,9 @@ def alarmText():
     print "erzeuge Alarm Texte"
     Tj.delete(1.0, END)
     TjI.place(x = 25,  y = 50,  width = 0,  height = 0 )
-    Tj.insert(INSERT, '\t' + 'Alarm ' + (str(nummer+1)) + '\n', 'ueberschrift')
+    ablaufText = strftime("%A %H:%M Uhr", strptime(alD['alerts'][nummer]['expires'],'%Y-%m-%d %H:%M:%S %Z'))
+    Tj.insert(INSERT, '\t' + 'Alarm ' + (str(nummer+1)), 'ueberschrift')
+    Tj.insert(INSERT, u' gültig bis: ' + ablaufText + '\n', 'normal')
     Tj.insert(END, alD['alerts'][nummer]['message'].replace(u'&nbsp)', '').replace(u'\n','').replace(u')','').encode('latin'), 'normal')
     if alD['alerts'][nummer]['level_meteoalarm_name'] == 'Yellow':
         Tj.config(bg='yellow')
