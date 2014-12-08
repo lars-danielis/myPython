@@ -17,8 +17,8 @@ import Adafruit_DHT
 BGCOLOR = "white"
 WEISS = "#FFF"
 #rpi
-#SCHRIFTGROESSE = 10
-SCHRIFTGROESSE = 13
+#SCHRIFTGROESSE = 10 #dell
+SCHRIFTGROESSE = 13 #asus und r-pi
 
 class myThread(threading.Thread):
     def __init__(self, threadID, name):
@@ -235,7 +235,7 @@ def ZeitLoop():
             elif mond >= 87 and mond < 95:
                 T0.image_create(END, image = mondI4)
                 T0.insert(END, ' ' + astD['moon_phase']['percentIlluminated'] + '%\n', 'zusatz')
-            elif mond > 95:
+            elif mond >= 95:
                 T0.image_create(END, image = mondI4)
                 T0.insert(END, ' Vollmond ' + astD['moon_phase']['percentIlluminated'] + '%\n', 'zusatz')
             # Mintemperatur
