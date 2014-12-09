@@ -367,7 +367,9 @@ def jetzt():
     else:
         Tj.insert(END, '\t' + str(aktD['current_observation']['temp_c']) + u"°C ", 'tempNormal')
     Tj.insert(END,   u'fühlt sich an wie ' + aktD['current_observation']['feelslike_c'] + u"°C", 'zusatz')
-    Tj.insert(END, '\tinnen', 'tempNormal')
+    Tj.insert(END, '\t', 'tempNormal')
+    Tj.image_create(END, image=hausI)
+    Tj.insert(END, ' ', 'tempNormal')
     Tj.insert(END, '\t{0:0.1f}'.format(temperaturInnen)+ u'°C\n', 'tempNormal')
 
     Tj.insert(END, ' \n', 'leer')
@@ -442,6 +444,7 @@ schneeI = PhotoImage(file = './schnee.pgm')
 regenI = PhotoImage(file = './regen.pgm')
 hochI = PhotoImage(file = './hoch.pgm')
 runterI = PhotoImage(file = './runter.pgm')
+hausI = PhotoImage(file = './haus.pgm')
 
 #Formate definieren
 Tj = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
