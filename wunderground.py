@@ -15,6 +15,7 @@ import sys
 import Adafruit_DHT
 
 BGCOLOR = "white"
+SCHRIFT = "FreeSans"
 WEISS = "#FFF"
 #rpi
 #SCHRIFTGROESSE = 10 #dell
@@ -64,7 +65,7 @@ def alarmText():
     TjI.place(x = 25,  y = 50,  width = 0,  height = 0 )
     ablaufText = strftime("%A %H:%M Uhr", strptime(alD['alerts'][nummer]['expires'],'%Y-%m-%d %H:%M:%S %Z'))
     Tj.insert(INSERT, '\t' + 'Alarm ' + (str(nummer+1)), 'ueberschrift')
-    Tj.insert(INSERT, u' gültig bis: ' + ablaufText + '\n', 'normal')
+    Tj.insert(INSERT, u' giltig bis ' + ablaufText + '\n', 'normal')
     Tj.insert(END, alD['alerts'][nummer]['message'].replace(u'&nbsp)', '').replace(u'\n','').replace(u')','').encode('latin'), 'normal')
     if alD['alerts'][nummer]['level_meteoalarm_name'] == 'Yellow':
         Tj.config(bg='yellow')
@@ -369,7 +370,6 @@ def jetzt():
     Tj.insert(END,   u'fühlt sich an wie ' + aktD['current_observation']['feelslike_c'] + u"°C", 'zusatz')
     Tj.insert(END, '\t', 'tempNormal')
     Tj.image_create(END, image=hausI)
-    Tj.insert(END, ' ', 'tempNormal')
     Tj.insert(END, '\t{0:0.1f}'.format(temperaturInnen)+ u'°C\n', 'tempNormal')
 
     Tj.insert(END, ' \n', 'leer')
@@ -378,7 +378,12 @@ def jetzt():
     Tj.insert(END, '\t', 'normal')
     Tj.image_create(END, image=tropfenI)
     Tj.insert(END, ' ' + aktD['current_observation']['relative_humidity'], 'normal')
-    Tj.insert(END, '\t\t{0:0.1f}'.format(feuchteInnen)+ u"%\n", 'normal')
+    Tj.insert(END, '\t', 'normal')
+    if feuchteInnen <= 60 and feuchteInnen >= 40:
+        Tj.image_create(END, image=frohI)
+    else:
+        Tj.image_create(END, image=traurigI)
+    Tj.insert(END, '\t{0:0.1f}'.format(feuchteInnen)+ u"%\n", 'tempKalt')
 
     # Luftdruck jetzt und Tendenz
     Tj.insert(END, '\t', 'normal')
@@ -445,41 +450,43 @@ regenI = PhotoImage(file = './regen.pgm')
 hochI = PhotoImage(file = './hoch.pgm')
 runterI = PhotoImage(file = './runter.pgm')
 hausI = PhotoImage(file = './haus.pgm')
+frohI = PhotoImage(file = './froh.pgm')
+traurigI = PhotoImage(file = './traurig.pgm')
 
 #Formate definieren
 Tj = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
-Tj.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), tabs = ('1c', CENTER))
-Tj.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('2,7c', '7,5c', '10c', NUMERIC), wrap = WORD)
-Tj.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-10))
-Tj.tag_configure('tempHeiss', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkred', tabs = ('2,7c', NUMERIC, '7,5c', '10c', NUMERIC))
-Tj.tag_configure('tempKalt', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkblue', tabs = ('2,7c', NUMERIC, '7,5c', '10c', NUMERIC))
-Tj.tag_configure('tempNormal', font=("Arial", SCHRIFTGROESSE + 4, 'bold'), foreground ='darkgreen', tabs = ('2,7c', NUMERIC, '7,5c', '10c', NUMERIC))
-Tj.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,7c','7,5c', '10c', NUMERIC), wrap = WORD)
+Tj.tag_configure('ueberschrift', font=(SCHRIFT, SCHRIFTGROESSE + 4, 'bold'), tabs = ('1c', CENTER))
+Tj.tag_configure('normal', font=(SCHRIFT, SCHRIFTGROESSE), tabs = ('3c', '9,3c', '10,6c', NUMERIC), wrap = WORD)
+Tj.tag_configure('leer', font=(SCHRIFT, SCHRIFTGROESSE-10))
+Tj.tag_configure('tempHeiss', font=(SCHRIFT, SCHRIFTGROESSE + 4, 'bold'), foreground ='darkred', tabs = ('3c', NUMERIC, '9,3c', '10,6c', NUMERIC))
+Tj.tag_configure('tempKalt', font=(SCHRIFT, SCHRIFTGROESSE + 4, 'bold'), foreground ='darkblue', tabs = ('3c', NUMERIC, '9,3c', '10,6c', NUMERIC))
+Tj.tag_configure('tempNormal', font=(SCHRIFT, SCHRIFTGROESSE + 4, 'bold'), foreground ='darkgreen', tabs = ('3c', NUMERIC, '9,3c', '10,6c', NUMERIC))
+Tj.tag_configure('zusatz', font=(SCHRIFT, SCHRIFTGROESSE - 2), tabs = ('3c','9,3c', '10,6c', NUMERIC), wrap = WORD)
 
 T0 = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
-T0.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'), tabs = ('2,5c', '5,5c'))
-T0.tag_configure('normal', font=("Arial", SCHRIFTGROESSE), tabs = ('2,7c', NUMERIC, '5,5c'))
-T0.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-10))
-T0.tag_configure('zusatz', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,7c', '5,5c'))
-T0.tag_configure('zusatzregen', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,6c', '5,5c'))
+T0.tag_configure('ueberschrift', font=(SCHRIFT, SCHRIFTGROESSE, 'bold'), tabs = ('2,5c', '5,5c'))
+T0.tag_configure('normal', font=(SCHRIFT, SCHRIFTGROESSE), tabs = ('2,7c', NUMERIC, '5,5c'))
+T0.tag_configure('leer', font=(SCHRIFT, SCHRIFTGROESSE-10))
+T0.tag_configure('zusatz', font=(SCHRIFT, SCHRIFTGROESSE - 2), tabs = ('2,7c', '5,5c'))
+T0.tag_configure('zusatzregen', font=(SCHRIFT, SCHRIFTGROESSE - 2), tabs = ('2,6c', '5,5c'))
 
 T1 = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
-T1.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'))
-T1.tag_configure('normal', font=("Arial", SCHRIFTGROESSE - 1), tabs = ('2,3c', NUMERIC))
-T1.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-9))
-T1.tag_configure('zusatzregen', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,2c'))
+T1.tag_configure('ueberschrift', font=(SCHRIFT, SCHRIFTGROESSE, 'bold'))
+T1.tag_configure('normal', font=(SCHRIFT, SCHRIFTGROESSE - 1), tabs = ('2,3c', NUMERIC))
+T1.tag_configure('leer', font=(SCHRIFT, SCHRIFTGROESSE-9))
+T1.tag_configure('zusatzregen', font=(SCHRIFT, SCHRIFTGROESSE - 2), tabs = ('2,2c'))
 
 T2 = Text(master=window, relief = 'flat', bd = 0, bg = BGCOLOR)
-T2.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'))
-T2.tag_configure('normal', font=("Arial", SCHRIFTGROESSE - 1), tabs = ('2,3c', NUMERIC))
-T2.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-9))
-T2.tag_configure('zusatzregen', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,2c'))
+T2.tag_configure('ueberschrift', font=(SCHRIFT, SCHRIFTGROESSE, 'bold'))
+T2.tag_configure('normal', font=(SCHRIFT, SCHRIFTGROESSE - 1), tabs = ('2,3c', NUMERIC))
+T2.tag_configure('leer', font=(SCHRIFT, SCHRIFTGROESSE-9))
+T2.tag_configure('zusatzregen', font=(SCHRIFT, SCHRIFTGROESSE - 2), tabs = ('2,2c'))
 
 T3 = Text(master=window, relief = 'flat', bd = 0, bg = BGCOLOR)
-T3.tag_configure('ueberschrift', font=("Arial", SCHRIFTGROESSE, 'bold'))
-T3.tag_configure('normal', font=("Arial", SCHRIFTGROESSE - 1), tabs = ('2,3c', NUMERIC))
-T3.tag_configure('leer', font=("Arial", SCHRIFTGROESSE-9))
-T3.tag_configure('zusatzregen', font=("Arial", SCHRIFTGROESSE - 2), tabs = ('2,2c'))
+T3.tag_configure('ueberschrift', font=(SCHRIFT, SCHRIFTGROESSE, 'bold'))
+T3.tag_configure('normal', font=(SCHRIFT, SCHRIFTGROESSE - 1), tabs = ('2,3c', NUMERIC))
+T3.tag_configure('leer', font=(SCHRIFT, SCHRIFTGROESSE-9))
+T3.tag_configure('zusatzregen', font=(SCHRIFT, SCHRIFTGROESSE - 2), tabs = ('2,2c'))
 
 # Formate für die Vorhersagebilder
 TjI = Text(master=window, relief = 'flat', borderwidth = 0)
