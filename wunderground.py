@@ -63,9 +63,14 @@ def alarmText():
     print "erzeuge Alarm Texte"
     Tj.delete(1.0, END)
     TjI.place(x = 25,  y = 50,  width = 0,  height = 0 )
+    T0I.place(x = 25,  y = 160, width = 0,  height = 0 )
+    T3I.place(x = 330, y = 253, width = 0,  height = 0 )
+    T0.place( x = 0,   y = 130, width = 0, height = 0)
+    Tj.place( x = 0,   y = 0,   width = 481, height = 226)
+    buttonAlarm.place(x = 320, y = 225, width = 161, height = 96)
     ablaufText = strftime("%A %H:%M Uhr", strptime(alD['alerts'][nummer]['expires'],'%Y-%m-%d %H:%M:%S %Z'))
     Tj.insert(INSERT, '\t' + 'Alarm ' + (str(nummer+1)), 'ueberschrift')
-    Tj.insert(INSERT, u' giltig bis ' + ablaufText + '\n', 'normal')
+    Tj.insert(INSERT, u' gilt bis ' + ablaufText + '\n', 'normal')
     Tj.insert(END, alD['alerts'][nummer]['message'].replace(u'&nbsp)', '').replace(u'\n','').replace(u')','').encode('latin'), 'normal')
     if alD['alerts'][nummer]['level_meteoalarm_name'] == 'Yellow':
         Tj.config(bg='yellow')
@@ -74,8 +79,8 @@ def alarmText():
         Tj.config(bg='orange')
         Tj.insert(END, orangerText, 'zusatz')
     elif alD['alerts'][nummer]['level_meteoalarm_name'] == 'Red':
-        Tj.insert(END, roterText, 'zusatz')
         Tj.config(bg='red')
+        Tj.insert(END, roterText, 'zusatz')
     if (nummer + 2) > len(alD['alerts']):
         buttonAlarm.config(text='zurück', command=jetzt)
     else:
@@ -350,6 +355,11 @@ def jetzt():
     Tj.delete(1.0, END)
     Tj.config(bg=BGCOLOR)
     TjI.place(x = 25,  y = 50,  width = 51,  height = 51 )
+    T0I.place(x = 25,  y = 160, width = 51,  height = 51 )
+    T3I.place(x = 330, y = 253, width = 51,  height = 51 )
+    T0.place( x = 0,   y = 130, width = 481, height = 100)
+    Tj.place( x = 0,   y = 0,   width = 481, height = 135)
+    buttonAlarm.place(x = 400, y = 130, width = 80, height = 96)
     #rpi
     feuchteInnen, temperaturInnen = Adafruit_DHT.read_retry(Adafruit_DHT.AM2302,26)
     #feuchteInnen = 0.0; temperaturInnen = 0.0
