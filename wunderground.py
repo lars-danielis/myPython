@@ -12,14 +12,14 @@ from Tkinter import *
 import threading
 import sys
 #rpi
-import Adafruit_DHT
+#import Adafruit_DHT
 
 BGCOLOR = "white"
 SCHRIFT = "FreeSans"
 WEISS = "#FFF"
 #rpi
-#SCHRIFTGROESSE = 10 #dell
-SCHRIFTGROESSE = 13 #asus und r-pi
+SCHRIFTGROESSE = 10 #dell
+#SCHRIFTGROESSE = 13 #asus und r-pi
 
 class myThread(threading.Thread):
     def __init__(self, threadID, name):
@@ -37,8 +37,8 @@ TjWTag = ''
 filenameIj = ''
 t = localtime()
 tj = localtime()
-aktD = {}
-alD = {}
+json = {}
+json = {}
 warte = 60
 nummer = 0
 gelberText =  u'\nDas Wetter ist potenziell gefährlich. Die vorhergesagten Wetterphänomene sind nicht wirklich ungewöhnlich, aber eine erhöhte Aufmerksamkeit ist angebracht.'
@@ -58,7 +58,7 @@ def nextAlarm():
     alarmText()
 
 def alarmText():
-    global alD, warte, nummer
+    global json, warte, nummer
     warte = 60
     print "erzeuge Alarm Texte"
     Tj.delete(1.0, END)
@@ -68,20 +68,20 @@ def alarmText():
     T0.place( x = 0,   y = 130, width = 0, height = 0)
     Tj.place( x = 0,   y = 0,   width = 481, height = 226)
     buttonAlarm.place(x = 320, y = 225, width = 161, height = 96)
-    ablaufText = strftime("%A %H:%M Uhr", strptime(alD['alerts'][nummer]['expires'],'%Y-%m-%d %H:%M:%S %Z'))
+    ablaufText = strftime("%A %H:%M Uhr", strptime(json['alerts'][nummer]['expires'],'%Y-%m-%d %H:%M:%S %Z'))
     Tj.insert(INSERT, '\t' + 'Alarm ' + (str(nummer+1)), 'ueberschrift')
     Tj.insert(INSERT, u' gilt bis ' + ablaufText + '\n', 'normal')
-    Tj.insert(END, alD['alerts'][nummer]['message'].replace(u'&nbsp)', '').replace(u'\n','').replace(u')','').encode('latin'), 'normal')
-    if alD['alerts'][nummer]['level_meteoalarm_name'] == 'Yellow':
+    Tj.insert(END, json['alerts'][nummer]['message'].replace(u'&nbsp)', '').replace(u'\n','').replace(u')','').encode('latin'), 'normal')
+    if json['alerts'][nummer]['level_meteoalarm_name'] == 'Yellow':
         Tj.config(bg='yellow')
         Tj.insert(END, gelberText, 'zusatz')
-    elif alD['alerts'][nummer]['level_meteoalarm_name'] == 'Orange':
+    elif json['alerts'][nummer]['level_meteoalarm_name'] == 'Orange':
         Tj.config(bg='orange')
         Tj.insert(END, orangerText, 'zusatz')
-    elif alD['alerts'][nummer]['level_meteoalarm_name'] == 'Red':
+    elif json['alerts'][nummer]['level_meteoalarm_name'] == 'Red':
         Tj.config(bg='red')
         Tj.insert(END, roterText, 'zusatz')
-    if (nummer + 2) > len(alD['alerts']):
+    if (nummer + 2) > len(json['alerts']):
         buttonAlarm.config(text='zurück', command=jetzt)
     else:
         buttonAlarm.config(text='Nächster', command=nextAlarm)
@@ -90,7 +90,7 @@ def alarmText():
 # für die Nutzung in einem separaten Thread, der dann pro Minute die Anzeige aktualisiert (für die Anzeige der
 # Minuten seit Aktualisierung) und alle 20 Min (1200 Sekunden) die Daten neu abfragt
 def ZeitLoop():
-    global TjWTag, t, tj, aktD, alD, filenameIj, warte, runZeitLoop
+    global TjWTag, t, tj, json, json, filenameIj, warte, runZeitLoop
     tl = 0
     while runZeitLoop:
 
@@ -100,16 +100,27 @@ def ZeitLoop():
             tl = t
 
             # Wunderground JSON-Daten holen
-            print "versuche aktuelle Werte und Icon zu holen ...",
+            print "versuche JSON-Daten zu holen ...",
             try:
-                akt = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/conditions/lang:DL/pws:1/q/pws:ibadenwr274.json")
+                jsonRaw = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/conditions/forecast/astronomy/alerts/lang:DL/pws:1/q/pws:ibadenwr274.json")
                 #rpi
-                #aktD = akt.json()
-                aktD = akt.json
+                json = jsonRaw.json()
+                #json = jsonRaw.json
                 print "erfolgreich"
 
+                print "versuche GIF zu holen ...",
+                try:
+                    filenameG = wget.download("http://api.wunderground.com/api/edc8d609ba28e7c2/animatedradar/animatedsatellite/lang:DL/q/eislingen.gif?sat.width=480&sat.height=320&rad.width=480&rad.height=320")           # GIF downloaden
+                    print "erfolgreich"
+                except IOError:
+                    filenameG = './fehler.pgm'
+                    print "keine Verbindung"
+                imgG = PhotoImage(file = filenameG)
+                #TjI.delete(1.0, END)
+                #TjI.image_create(INSERT, image=imgIj)
+
                 # Zeitstempel der Wetterdaten holen, parsen und in deutsches Format wandeln
-                zeitRoh = email.utils.parsedate_tz(aktD['current_observation']['observation_time_rfc822'])
+                zeitRoh = email.utils.parsedate_tz(json['current_observation']['observation_time_rfc822'])
                 tj = mktime(gmtime(email.utils.mktime_tz(zeitRoh) + zeitRoh[9]))
                 TjWTag = strftime("%A", gmtime(email.utils.mktime_tz(zeitRoh) + zeitRoh[9]))
                 #TjZeit = strftime("%H:%M", gmtime(email.utils.mktime_tz(zeitRoh) + zeitRoh[9]))
@@ -121,7 +132,7 @@ def ZeitLoop():
                     os.remove(filename)
                 # holen
                 print "hole Jetzt-Icon"
-                iconUrlIj = aktD['current_observation']['icon_url'] # IconUrl holen
+                iconUrlIj = json['current_observation']['icon_url'] # IconUrl holen
                 iconUrlIj = iconUrlIj.replace("/k/", "/a/")         # Art des Icons tauschen
                 try:
                     filenameIj = wget.download(iconUrlIj)           # Icon dowloaden
@@ -135,16 +146,9 @@ def ZeitLoop():
             except requests.exceptions.ConnectionError:
                 print "keine Verbindung"
 
-            print "versuche Vorhersagen und Icons zu holen ...",
+            print "versuche Icons zu holen ...",
             try:
-                vor = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/forecast/lang:DL/pws:1/q/pws:ibadenwr274.json")
-                #rpi
-                #vorD = vor.json()
-                vorD = vor.json
-                print "erfolgreich"
-
-                print "hole Vorhersage-Icons"
-                iconUrlI0 = vorD['forecast']['simpleforecast']['forecastday'][0]['icon_url'] # IconUrl holen
+                iconUrlI0 = json['forecast']['simpleforecast']['forecastday'][0]['icon_url'] # IconUrl holen
                 iconUrlI0 = iconUrlI0.replace("/k/", "/a/")                  # Art des Icons tauschen
                 try:
                     filenameI0 = wget.download(iconUrlI0)                        # Icon dowloaden
@@ -155,7 +159,7 @@ def ZeitLoop():
                     filenameI0 = './fehler.pgm'
                     print "Heute-Icon konnte nicht geladen werden"
 
-                iconUrlI1 = vorD['forecast']['simpleforecast']['forecastday'][1]['icon_url'] # IconUrl holen
+                iconUrlI1 = json['forecast']['simpleforecast']['forecastday'][1]['icon_url'] # IconUrl holen
                 iconUrlI1 = iconUrlI1.replace("/k/", "/a/")                  # Art des Icons tauschen
                 try:
                     filenameI1 = wget.download(iconUrlI1)                        # Icon dowloaden
@@ -166,7 +170,7 @@ def ZeitLoop():
                     filenameI1 = './fehler.pgm'
                     print "Morgen-Icon konnte nicht geladen werden"
 
-                iconUrlI2 = vorD['forecast']['simpleforecast']['forecastday'][2]['icon_url'] # IconUrl holen
+                iconUrlI2 = json['forecast']['simpleforecast']['forecastday'][2]['icon_url'] # IconUrl holen
                 iconUrlI2 = iconUrlI2.replace("/k/", "/a/")                  # Art des Icons tauschen
                 try:
                     filenameI2 = wget.download(iconUrlI2)                        # Icon downloaden
@@ -177,7 +181,7 @@ def ZeitLoop():
                     filenameI2 = './fehler.pgm'
                     print "Übermorgen-Icon konnte nicht geladen werden"
 
-                iconUrlI3 = vorD['forecast']['simpleforecast']['forecastday'][3]['icon_url'] # IconUrl holen
+                iconUrlI3 = json['forecast']['simpleforecast']['forecastday'][3]['icon_url'] # IconUrl holen
                 iconUrlI3 = iconUrlI3.replace("/k/", "/a/")                  # Art des Icons tauschen
                 try:
                     filenameI3 = wget.download(iconUrlI3)                        # Icon downloaden
@@ -188,27 +192,6 @@ def ZeitLoop():
                     filenameI3 = './fehler.pgm'
                     print "Überübermorgen-Icon konnte nicht geladen werden"
 
-
-            except requests.exceptions.ConnectionError:
-                print "keine Verbindung"
-
-            print "versuche astronomische Werte zu holen ...",
-            try:
-                ast = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/astronomy/lang:DL/pws:1/q/pws:ibadenwr274.json")
-                #rpi
-                #astD = ast.json()
-                astD = ast.json
-                print "erfolgreich,"
-            except requests.exceptions.ConnectionError:
-                print "keine Verbindung"
-
-            print "versuche Alarme zu holen ...",
-            try:
-                al = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/alerts/lang:DL/pws:1/q/pws:ibadenwr274.json")
-                #rpi
-                #alD = al.json()
-                alD = al.json
-                print "erfolgreich,"
             except requests.exceptions.ConnectionError:
                 print "keine Verbindung"
 
@@ -218,60 +201,60 @@ def ZeitLoop():
             T0.insert(INSERT, u' Vorhersage für heute\n', 'ueberschrift')
             T0.insert(END, ' \n', 'leer')
             # Maxtemperatur
-            T0.insert(END, '\t' +  vorD['forecast']['simpleforecast']['forecastday'][0]['high']['celsius'] + u"°C", 'normal')
+            T0.insert(END, '\t' +  json['forecast']['simpleforecast']['forecastday'][0]['high']['celsius'] + u"°C", 'normal')
             # Mond heute
             T0.insert(END, '\t', 'zusatz')
-            mond = int(astD['moon_phase']['percentIlluminated'])
+            mond = int(json['moon_phase']['percentIlluminated'])
             if mond < 5:
                 T0.image_create(END, image = mondI0)
-                T0.insert(END, ' Neumond ' + astD['moon_phase']['percentIlluminated'] + '%\n', 'zusatz')
+                T0.insert(END, ' Neumond ' + json['moon_phase']['percentIlluminated'] + '%\n', 'zusatz')
             elif mond >= 5 and mond < 12:
                 T0.image_create(END, image = mondI0)
-                T0.insert(END, ' ' + astD['moon_phase']['percentIlluminated'] + '%\n', 'zusatz')
+                T0.insert(END, ' ' + json['moon_phase']['percentIlluminated'] + '%\n', 'zusatz')
             elif mond >= 12 and mond < 37:
                 T0.image_create(END, image = mondI1)
-                T0.insert(END, ' ' + astD['moon_phase']['percentIlluminated'] + '%\n', 'zusatz')
+                T0.insert(END, ' ' + json['moon_phase']['percentIlluminated'] + '%\n', 'zusatz')
             elif mond >= 37 and mond < 62:
                 T0.image_create(END, image = mondI2)
-                T0.insert(END, ' ' + astD['moon_phase']['percentIlluminated'] + '%\n', 'zusatz')
+                T0.insert(END, ' ' + json['moon_phase']['percentIlluminated'] + '%\n', 'zusatz')
             elif mond >= 62 and mond < 87:
                 T0.image_create(END, image = mondI3)
-                T0.insert(END, ' ' + astD['moon_phase']['percentIlluminated'] + '%\n', 'zusatz')
+                T0.insert(END, ' ' + json['moon_phase']['percentIlluminated'] + '%\n', 'zusatz')
             elif mond >= 87 and mond < 95:
                 T0.image_create(END, image = mondI4)
-                T0.insert(END, ' ' + astD['moon_phase']['percentIlluminated'] + '%\n', 'zusatz')
+                T0.insert(END, ' ' + json['moon_phase']['percentIlluminated'] + '%\n', 'zusatz')
             elif mond >= 95:
                 T0.image_create(END, image = mondI4)
-                T0.insert(END, ' Vollmond ' + astD['moon_phase']['percentIlluminated'] + '%\n', 'zusatz')
+                T0.insert(END, ' Vollmond ' + json['moon_phase']['percentIlluminated'] + '%\n', 'zusatz')
             # Mintemperatur
-            T0.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][0]['low']['celsius'] + u"°C",'normal')
+            T0.insert(END, '\t' + json['forecast']['simpleforecast']['forecastday'][0]['low']['celsius'] + u"°C",'normal')
             # Sonne
             T0.insert(END, '\t', 'zusatz')
             T0.image_create(END, image= sonneI)
-            T0.insert(END, ' ' + astD['sun_phase']['sunrise']['hour'] + ":"+astD['sun_phase']['sunrise']['minute'], 'zusatz')
-            T0.insert(END, ' - ' + astD['sun_phase']['sunset']['hour'] + ":" + astD['sun_phase']['sunset']['minute']+'\n', 'zusatz')
+            T0.insert(END, ' ' + json['sun_phase']['sunrise']['hour'] + ":"+json['sun_phase']['sunrise']['minute'], 'zusatz')
+            T0.insert(END, ' - ' + json['sun_phase']['sunset']['hour'] + ":" + json['sun_phase']['sunset']['minute']+'\n', 'zusatz')
             # Niederschlag heute
-            if vorD['forecast']['simpleforecast']['forecastday'][0]['snow_allday']['cm'] == 0.0:
-                if vorD['forecast']['simpleforecast']['forecastday'][0]['qpf_allday']['mm'] == 0:
+            if json['forecast']['simpleforecast']['forecastday'][0]['snow_allday']['cm'] == 0.0:
+                if json['forecast']['simpleforecast']['forecastday'][0]['qpf_allday']['mm'] == 0:
                     T0.insert(END, '\t', 'zusatzregen')
                     T0.image_create(END, image = trockenI)
                 else:
                     T0.insert(END, '\t', 'zusatzregen')
                     T0.image_create(END, image = regenI)
-                    T0.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][0]['qpf_allday']['mm']),'zusatzregen')
+                    T0.insert(END, ' ' + str(json['forecast']['simpleforecast']['forecastday'][0]['qpf_allday']['mm']),'zusatzregen')
                     T0.insert(END, 'mm','zusatzregen')
             else:
                 T0.insert(END, '\t', 'zusatzregen')
                 T0.image_create(END, image = schneeI)
-                T0.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][0]['snow_allday']['cm']),'zusatzregen')
+                T0.insert(END, ' ' + str(json['forecast']['simpleforecast']['forecastday'][0]['snow_allday']['cm']),'zusatzregen')
                 T0.insert(END, 'cm','zusatzregen')
             # Wind heute
             T0.insert(END, '\t', 'zusatz')
             T0.image_create(END, image=windI)
-            if vorD['forecast']['simpleforecast']['forecastday'][0]['avewind']['kph'] > 0:
-                T0.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][0]['avewind']['kph']),'zusatz')
-                T0.insert(END, '-' + str(vorD['forecast']['simpleforecast']['forecastday'][0]['maxwind']['kph'])+ "km/h ", 'zusatz')
-                T0.insert(END, vorD['forecast']['simpleforecast']['forecastday'][0]['avewind']['dir'], 'zusatz')
+            if json['forecast']['simpleforecast']['forecastday'][0]['avewind']['kph'] > 0:
+                T0.insert(END, ' ' + str(json['forecast']['simpleforecast']['forecastday'][0]['avewind']['kph']),'zusatz')
+                T0.insert(END, '-' + str(json['forecast']['simpleforecast']['forecastday'][0]['maxwind']['kph'])+ "km/h ", 'zusatz')
+                T0.insert(END, json['forecast']['simpleforecast']['forecastday'][0]['avewind']['dir'], 'zusatz')
             else:
                 T0.insert(END, ' 0 km/h', 'zusatz')
 
@@ -279,63 +262,63 @@ def ZeitLoop():
             T1.delete(1.0, END)
             T1.insert(INSERT, ' Morgen\n', 'ueberschrift')
             T1.insert(END, ' \n', 'leer')
-            T1.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][1]['high']['celsius'] + u"°C\n", 'normal')
-            T1.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][1]['low']['celsius'] + u"°C\n", 'normal')
-            if vorD['forecast']['simpleforecast']['forecastday'][1]['snow_allday']['cm'] == 0.0:
-                if vorD['forecast']['simpleforecast']['forecastday'][1]['qpf_allday']['mm'] == 0:
+            T1.insert(END, '\t' + json['forecast']['simpleforecast']['forecastday'][1]['high']['celsius'] + u"°C\n", 'normal')
+            T1.insert(END, '\t' + json['forecast']['simpleforecast']['forecastday'][1]['low']['celsius'] + u"°C\n", 'normal')
+            if json['forecast']['simpleforecast']['forecastday'][1]['snow_allday']['cm'] == 0.0:
+                if json['forecast']['simpleforecast']['forecastday'][1]['qpf_allday']['mm'] == 0:
                     T1.insert(END, '\t', 'zusatzregen')
                     T1.image_create(END, image = trockenI)
                 else:
                     T1.insert(END, '\t', 'zusatzregen')
                     T1.image_create(END, image = regenI)
-                    T1.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][1]['qpf_allday']['mm']),'zusatzregen')
+                    T1.insert(END, ' ' + str(json['forecast']['simpleforecast']['forecastday'][1]['qpf_allday']['mm']),'zusatzregen')
                     T1.insert(END, 'mm','zusatzregen')
             else:
                 T1.insert(END, '\t', 'zusatzregen')
                 T1.image_create(END, image = schneeI)
-                T1.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][1]['snow_allday']['cm']),'zusatzregen')
+                T1.insert(END, ' ' + str(json['forecast']['simpleforecast']['forecastday'][1]['snow_allday']['cm']),'zusatzregen')
                 T1.insert(END, 'cm','zusatzregen')
 
             # Vorhersage übermorgen
             T2.delete(1.0, END)
-            T2.insert(INSERT, ' ' + vorD['forecast']['simpleforecast']['forecastday'][2]['date']['weekday'] + '\n', 'ueberschrift')
+            T2.insert(INSERT, ' ' + json['forecast']['simpleforecast']['forecastday'][2]['date']['weekday'] + '\n', 'ueberschrift')
             T2.insert(END, ' \n', 'leer')
-            T2.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][2]['high']['celsius'] + u"°C\n", 'normal')
-            T2.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][2]['low']['celsius'] + u"°C\n", 'normal')
-            if vorD['forecast']['simpleforecast']['forecastday'][2]['snow_allday']['cm'] == 0.0:
-                if vorD['forecast']['simpleforecast']['forecastday'][2]['qpf_allday']['mm'] == 0:
+            T2.insert(END, '\t' + json['forecast']['simpleforecast']['forecastday'][2]['high']['celsius'] + u"°C\n", 'normal')
+            T2.insert(END, '\t' + json['forecast']['simpleforecast']['forecastday'][2]['low']['celsius'] + u"°C\n", 'normal')
+            if json['forecast']['simpleforecast']['forecastday'][2]['snow_allday']['cm'] == 0.0:
+                if json['forecast']['simpleforecast']['forecastday'][2]['qpf_allday']['mm'] == 0:
                     T2.insert(END, '\t', 'zusatzregen')
                     T2.image_create(END, image = trockenI)
                 else:
                     T2.insert(END, '\t', 'zusatzregen')
                     T2.image_create(END, image = regenI)
-                    T2.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][2]['qpf_allday']['mm']),'zusatzregen')
+                    T2.insert(END, ' ' + str(json['forecast']['simpleforecast']['forecastday'][2]['qpf_allday']['mm']),'zusatzregen')
                     T2.insert(END, 'mm','zusatzregen')
             else:
                 T2.insert(END, '\t', 'zusatzregen')
                 T2.image_create(END, image = schneeI)
-                T2.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][2]['snow_allday']['cm']),'zusatzregen')
+                T2.insert(END, ' ' + str(json['forecast']['simpleforecast']['forecastday'][2]['snow_allday']['cm']),'zusatzregen')
                 T2.insert(END, 'cm','zusatzregen')
 
             # Vorhersage überübermorgen
             T3.delete(1.0, END)
-            T3.insert(INSERT, ' ' + vorD['forecast']['simpleforecast']['forecastday'][3]['date']['weekday'] + '\n', 'ueberschrift')
+            T3.insert(INSERT, ' ' + json['forecast']['simpleforecast']['forecastday'][3]['date']['weekday'] + '\n', 'ueberschrift')
             T3.insert(END, ' \n', 'leer')
-            T3.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][3]['high']['celsius'] + u"°C\n", 'normal')
-            T3.insert(END, '\t' + vorD['forecast']['simpleforecast']['forecastday'][3]['low']['celsius'] + u"°C\n", 'normal')
-            if vorD['forecast']['simpleforecast']['forecastday'][3]['snow_allday']['cm'] == 0.0:
-                if vorD['forecast']['simpleforecast']['forecastday'][3]['qpf_allday']['mm'] == 0:
+            T3.insert(END, '\t' + json['forecast']['simpleforecast']['forecastday'][3]['high']['celsius'] + u"°C\n", 'normal')
+            T3.insert(END, '\t' + json['forecast']['simpleforecast']['forecastday'][3]['low']['celsius'] + u"°C\n", 'normal')
+            if json['forecast']['simpleforecast']['forecastday'][3]['snow_allday']['cm'] == 0.0:
+                if json['forecast']['simpleforecast']['forecastday'][3]['qpf_allday']['mm'] == 0:
                     T3.insert(END, '\t', 'zusatzregen')
                     T3.image_create(END, image = trockenI)
                 else:
                     T3.insert(END, '\t', 'zusatzregen')
                     T3.image_create(END, image = regenI)
-                    T3.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][3]['qpf_allday']['mm']),'zusatzregen')
+                    T3.insert(END, ' ' + str(json['forecast']['simpleforecast']['forecastday'][3]['qpf_allday']['mm']),'zusatzregen')
                     T3.insert(END, 'mm','zusatzregen')
             else:
                 T3.insert(END, '\t', 'zusatzregen')
                 T3.image_create(END, image = schneeI)
-                T3.insert(END, ' ' + str(vorD['forecast']['simpleforecast']['forecastday'][3]['snow_allday']['cm']),'zusatzregen')
+                T3.insert(END, ' ' + str(json['forecast']['simpleforecast']['forecastday'][3]['snow_allday']['cm']),'zusatzregen')
                 T3.insert(END, 'cm','zusatzregen')
 
         # jetziges Wetter anzeigen
@@ -348,7 +331,7 @@ def ZeitLoop():
     print 'beende Zeitloop'
 
 def jetzt():
-    global TjWTag, t, tj, aktD, aldD, filenameIj, nummer
+    global TjWTag, t, tj, json, jsonD, filenameIj, nummer
     print "erzeuge Texte für aktuelle Werte je Minute"
     # Wetter jetzt
     nummer = 0
@@ -361,8 +344,8 @@ def jetzt():
     Tj.place( x = 0,   y = 0,   width = 481, height = 135)
     buttonAlarm.place(x = 400, y = 130, width = 80, height = 96)
     #rpi
-    feuchteInnen, temperaturInnen = Adafruit_DHT.read_retry(Adafruit_DHT.AM2302,26)
-    #feuchteInnen = 0.0; temperaturInnen = 0.0
+    #feuchteInnen, temperaturInnen = Adafruit_DHT.read_retry(Adafruit_DHT.AM2302,26)
+    feuchteInnen = 0.0; temperaturInnen = 0.0
     if feuchteInnen is None and temperaturInnen is None:
         feuchteInnen = 0.0; temperaturInnen = 0.0
     Tj.insert(INSERT, '\t' + TjWTag, 'ueberschrift')
@@ -370,13 +353,13 @@ def jetzt():
 
     Tj.insert(END, ' \n', 'leer')
 
-    if aktD['current_observation']['temp_c'] > 20:
-        Tj.insert(END, '\t' + str(aktD['current_observation']['temp_c']) + u"°C ", 'tempHeiss')
-    elif aktD['current_observation']['temp_c'] < 0:
-        Tj.insert(END, '\t' + str(aktD['current_observation']['temp_c']) + u"°C ", 'tempKalt')
+    if json['current_observation']['temp_c'] > 20:
+        Tj.insert(END, '\t' + str(json['current_observation']['temp_c']) + u"°C ", 'tempHeiss')
+    elif json['current_observation']['temp_c'] < 0:
+        Tj.insert(END, '\t' + str(json['current_observation']['temp_c']) + u"°C ", 'tempKalt')
     else:
-        Tj.insert(END, '\t' + str(aktD['current_observation']['temp_c']) + u"°C ", 'tempNormal')
-    Tj.insert(END,   u'fühlt sich an wie ' + aktD['current_observation']['feelslike_c'] + u"°C", 'zusatz')
+        Tj.insert(END, '\t' + str(json['current_observation']['temp_c']) + u"°C ", 'tempNormal')
+    Tj.insert(END,   u'fühlt sich an wie ' + json['current_observation']['feelslike_c'] + u"°C", 'zusatz')
     Tj.insert(END, '\t', 'tempNormal')
     Tj.image_create(END, image=hausI)
     Tj.insert(END, '\t{0:0.1f}'.format(temperaturInnen)+ u'°C\n', 'tempNormal')
@@ -386,7 +369,7 @@ def jetzt():
     # Luftfeuchtigkeit jetzt
     Tj.insert(END, '\t', 'normal')
     Tj.image_create(END, image=tropfenI)
-    Tj.insert(END, ' ' + aktD['current_observation']['relative_humidity'], 'normal')
+    Tj.insert(END, ' ' + json['current_observation']['relative_humidity'], 'normal')
     Tj.insert(END, '\t', 'normal')
     if feuchteInnen <= 60 and feuchteInnen >= 40:
         Tj.image_create(END, image=frohI)
@@ -397,11 +380,11 @@ def jetzt():
     # Luftdruck jetzt und Tendenz
     Tj.insert(END, '\t', 'normal')
     Tj.image_create(END, image=druckI)
-    Tj.insert(END, ' ' + aktD['current_observation']['pressure_mb'] + 'mbar ', 'normal')
-    if aktD['current_observation']['pressure_trend'] == '+':
+    Tj.insert(END, ' ' + json['current_observation']['pressure_mb'] + 'mbar ', 'normal')
+    if json['current_observation']['pressure_trend'] == '+':
         Tj.image_create(END, image=hochI)
         Tj.insert(END, '\n', 'normal')
-    elif aktD['current_observation']['pressure_trend'] == '-':
+    elif json['current_observation']['pressure_trend'] == '-':
         Tj.image_create(END, image=runterI)
         Tj.insert(END, '\n', 'normal')
     else:
@@ -410,23 +393,23 @@ def jetzt():
     # Wind jetzt und Niederschlag bis jetzt
     #Tj.insert(END, '\t', 'zusatz')
     #Tj.image_create(END, image=windI)
-    #if aktD['current_observation']['wind_kph'] > 0:
-    #    Tj.insert(END, ' ' + str(aktD['current_observation']['wind_kph']) + "km/h aus ", 'zusatz')
-    #    Tj.insert(END, aktD['current_observation']['wind_dir'], 'zusatz')
+    #if json['current_observation']['wind_kph'] > 0:
+    #    Tj.insert(END, ' ' + str(json['current_observation']['wind_kph']) + "km/h aus ", 'zusatz')
+    #    Tj.insert(END, json['current_observation']['wind_dir'], 'zusatz')
     #else:
     #    Tj.insert(END, ' 0 km/h', 'zusatz')
     #Tj.insert(END, ', ', 'zusatz')
-    #if aktD['current_observation']['precip_today_metric'] == '0':
+    #if json['current_observation']['precip_today_metric'] == '0':
     #    Tj.image_create(END, image = trockenI)
     #else:
     #    Tj.image_create(END, image = regenI)
-    #    Tj.insert(END, ' ' + aktD['current_observation']['precip_today_metric'],'zusat')
+    #    Tj.insert(END, ' ' + json['current_observation']['precip_today_metric'],'zusat')
     #    Tj.insert(END, 'mm','zusatz')
 
     # Alarme prüfen und wenn vorhanden den Knopf mit der Anzahl der Alarme anzeigen, sonst Knopf löschen
-    if len(alD['alerts']):
-        buttonText = str(len(alD['alerts']))
-        if len(alD['alerts']) == 1:
+    if len(json['alerts']):
+        buttonText = str(len(json['alerts']))
+        if len(json['alerts']) == 1:
              buttonText += ' Alarm'
         else:
             buttonText += ' Alarme'
