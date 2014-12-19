@@ -12,14 +12,14 @@ from Tkinter import *
 import threading
 import sys
 #rpi
-#import Adafruit_DHT
+import Adafruit_DHT
 
 BGCOLOR = "white"
 SCHRIFT = "FreeSans"
 WEISS = "#FFF"
 #rpi
-SCHRIFTGROESSE = 10 #dell
-#SCHRIFTGROESSE = 13 #asus und r-pi
+#SCHRIFTGROESSE = 10 #dell
+SCHRIFTGROESSE = 13 #asus und r-pi
 
 class myThread(threading.Thread):
     def __init__(self, threadID, name):
@@ -104,8 +104,8 @@ def ZeitLoop():
             try:
                 jsonRaw = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/conditions/forecast/astronomy/alerts/lang:DL/pws:1/q/pws:ibadenwr274.json")
                 #rpi
-                json = jsonRaw.json()
-                #json = jsonRaw.json
+                #json = jsonRaw.json()
+                json = jsonRaw.json
                 print "erfolgreich"
 
                 print "versuche GIF zu holen ...",
@@ -344,8 +344,8 @@ def jetzt():
     Tj.place( x = 0,   y = 0,   width = 481, height = 135)
     buttonAlarm.place(x = 400, y = 130, width = 80, height = 96)
     #rpi
-    #feuchteInnen, temperaturInnen = Adafruit_DHT.read_retry(Adafruit_DHT.AM2302,26)
-    feuchteInnen = 0.0; temperaturInnen = 0.0
+    feuchteInnen, temperaturInnen = Adafruit_DHT.read_retry(Adafruit_DHT.AM2302,26)
+    #feuchteInnen = 0.0; temperaturInnen = 0.0
     if feuchteInnen is None and temperaturInnen is None:
         feuchteInnen = 0.0; temperaturInnen = 0.0
     Tj.insert(INSERT, '\t' + TjWTag, 'ueberschrift')
