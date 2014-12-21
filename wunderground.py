@@ -16,7 +16,7 @@ import Adafruit_DHT
 
 BGCOLOR = "white"
 SCHRIFT = "FreeSans"
-WEISS = "#FFF"
+WEISS   = "#FFF"
 #rpi
 #SCHRIFTGROESSE = 10 #dell
 SCHRIFTGROESSE = 13 #asus und r-pi
@@ -61,14 +61,15 @@ def alarmText():
     global json, warte, nummer
     warte = 60
     print "erzeuge Alarm Texte"
-    Tj.delete(1.0, END)
     TjI.place(x = 25,  y = 50,  width = 0,  height = 0 )
     T0I.place(x = 25,  y = 160, width = 0,  height = 0 )
     T3I.place(x = 330, y = 253, width = 0,  height = 0 )
     T0.place( x = 0,   y = 130, width = 0, height = 0)
     Tj.place( x = 0,   y = 0,   width = 481, height = 226)
-    buttonAlarm.place(x = 320, y = 225, width = 161, height = 96)
+    buttonAlarm.place(x = 320, y = 225, width = 161, height = 97)
+    buttonRadar.place(x = 400, y = 130, width = 0,   height = 0 )
     ablaufText = strftime("%A %H:%M Uhr", strptime(json['alerts'][nummer]['expires'],'%Y-%m-%d %H:%M:%S %Z'))
+    Tj.delete(1.0, END)
     Tj.insert(INSERT, '\t' + 'Alarm ' + (str(nummer+1)), 'ueberschrift')
     Tj.insert(INSERT, u' gilt bis ' + ablaufText + '\n', 'normal')
     Tj.insert(END, json['alerts'][nummer]['message'].replace(u'&nbsp)', '').replace(u'\n','').replace(u')','').encode('latin'), 'normal')
@@ -85,6 +86,20 @@ def alarmText():
         buttonAlarm.config(text='zurück', command=jetzt)
     else:
         buttonAlarm.config(text='Nächster', command=nextAlarm)
+
+def radar():
+    print "zeige GIF"
+    Tj.delete(1.0, END)
+    TjI.place(x = 25,  y = 50,  width = 0,  height = 0 )
+    T0I.place(x = 25,  y = 160, width = 0,  height = 0 )
+    T1I.place(x = 10,  y = 253, width = 0,  height = 0 )
+    T2I.place(x = 170, y = 253, width = 0,  height = 0 )
+    T3I.place(x = 330, y = 253, width = 0,  height = 0 )
+    T0.place( x = 0,   y = 130, width = 0, height = 0)
+    Tj.place( x = 0,   y = 0,   width = 481, height = 226)
+    TG.place( x = 0,   y = 0,   width = 480, height = 320)
+    buttonAlarm.place(x = 400, y = 178, width = 0, height = 0)
+    buttonRadar.config(text='Zurück', command=jetzt)
 
 # Funktion um entweder einmalig zum Testen (mitLoop = 0) per Funktionsaufruf benutzt zu werden, oder mitLoop = 1
 # für die Nutzung in einem separaten Thread, der dann pro Minute die Anzeige aktualisiert (für die Anzeige der
@@ -110,14 +125,14 @@ def ZeitLoop():
 
                 print "versuche GIF zu holen ...",
                 try:
-                    filenameG = wget.download("http://api.wunderground.com/api/edc8d609ba28e7c2/animatedradar/animatedsatellite/lang:DL/q/eislingen.gif?sat.width=480&sat.height=320&rad.width=480&rad.height=320")           # GIF downloaden
+                    filenameG = wget.download("http://api.wunderground.com/api/edc8d609ba28e7c2/animatedradar/animatedsatellite/lang:DL/q/eislingen.gif?sat.width=480&sat.height=320&rad.width=480&rad.height=320&num=8&delay=25&interval=5&rad.smooth=1")           # GIF downloaden
                     print "erfolgreich"
                 except IOError:
                     filenameG = './fehler.pgm'
                     print "keine Verbindung"
                 imgG = PhotoImage(file = filenameG)
-                #TjI.delete(1.0, END)
-                #TjI.image_create(INSERT, image=imgIj)
+                TG.delete(1.0, END)
+                TG.image_create(INSERT, image=imgG)
 
                 # Zeitstempel der Wetterdaten holen, parsen und in deutsches Format wandeln
                 zeitRoh = email.utils.parsedate_tz(json['current_observation']['observation_time_rfc822'])
@@ -335,19 +350,24 @@ def jetzt():
     print "erzeuge Texte für aktuelle Werte je Minute"
     # Wetter jetzt
     nummer = 0
-    Tj.delete(1.0, END)
     Tj.config(bg=BGCOLOR)
     TjI.place(x = 25,  y = 50,  width = 51,  height = 51 )
     T0I.place(x = 25,  y = 160, width = 51,  height = 51 )
+    T1I.place(x = 10,  y = 253, width = 51,  height = 51 )
+    T2I.place(x = 170, y = 253, width = 51,  height = 51 )
     T3I.place(x = 330, y = 253, width = 51,  height = 51 )
     T0.place( x = 0,   y = 130, width = 481, height = 100)
     Tj.place( x = 0,   y = 0,   width = 481, height = 135)
-    buttonAlarm.place(x = 400, y = 130, width = 80, height = 96)
+    TG.place( x = 0,   y = 0,   width = 0, height = 0)
+    buttonAlarm.place(x = 400, y = 178, width = 80, height = 48)
+    buttonRadar.place(x = 400, y = 130, width = 80, height = 49)
+    buttonRadar.config(text='Radar', command=radar)
     #rpi
     feuchteInnen, temperaturInnen = Adafruit_DHT.read_retry(Adafruit_DHT.AM2302,26)
     #feuchteInnen = 0.0; temperaturInnen = 0.0
     if feuchteInnen is None and temperaturInnen is None:
         feuchteInnen = 0.0; temperaturInnen = 0.0
+    Tj.delete(1.0, END)
     Tj.insert(INSERT, '\t' + TjWTag, 'ueberschrift')
     Tj.insert(END, '  letzte Aktualisierung vor ' + str(int((t-tj)/60)) +' Minuten\n', 'zusatz')
 
@@ -427,58 +447,58 @@ window.overrideredirect(True)
 window.geometry("480x320+0+0")
 
 # konstante Icons laden
-mondI0 = PhotoImage(file = './mond04.pgm')
-mondI1 = PhotoImage(file = './mond14.pgm')
-mondI2 = PhotoImage(file = './mond24.pgm')
-mondI3 = PhotoImage(file = './mond34.pgm')
-mondI4 = PhotoImage(file = './mond44.pgm')
-sonneI = PhotoImage(file = './sonne.pgm')
+mondI0   = PhotoImage(file = './mond04.pgm' )
+mondI1   = PhotoImage(file = './mond14.pgm' )
+mondI2   = PhotoImage(file = './mond24.pgm' )
+mondI3   = PhotoImage(file = './mond34.pgm' )
+mondI4   = PhotoImage(file = './mond44.pgm' )
+sonneI   = PhotoImage(file = './sonne.pgm'  )
 tropfenI = PhotoImage(file = './tropfen.pgm')
 trockenI = PhotoImage(file = './trocken.pgm')
-druckI = PhotoImage(file = './druck.pgm')
-windI = PhotoImage(file = './wind.pgm')
-schneeI = PhotoImage(file = './schnee.pgm')
-regenI = PhotoImage(file = './regen.pgm')
-hochI = PhotoImage(file = './hoch.pgm')
-runterI = PhotoImage(file = './runter.pgm')
-hausI = PhotoImage(file = './haus.pgm')
-frohI = PhotoImage(file = './froh.pgm')
+druckI   = PhotoImage(file = './druck.pgm'  )
+windI    = PhotoImage(file = './wind.pgm'   )
+schneeI  = PhotoImage(file = './schnee.pgm' )
+regenI   = PhotoImage(file = './regen.pgm'  )
+hochI    = PhotoImage(file = './hoch.pgm'   )
+runterI  = PhotoImage(file = './runter.pgm' )
+hausI    = PhotoImage(file = './haus.pgm'   )
+frohI    = PhotoImage(file = './froh.pgm'   )
 traurigI = PhotoImage(file = './traurig.pgm')
 
 #Formate definieren
 Tj = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
 Tj.tag_configure('ueberschrift', font=(SCHRIFT, SCHRIFTGROESSE + 4, 'bold'), tabs = ('1c', CENTER))
-Tj.tag_configure('normal', font=(SCHRIFT, SCHRIFTGROESSE), tabs = ('3c', '9,3c', '10,6c', NUMERIC), wrap = WORD)
-Tj.tag_configure('leer', font=(SCHRIFT, SCHRIFTGROESSE-10))
-Tj.tag_configure('tempHeiss', font=(SCHRIFT, SCHRIFTGROESSE + 4, 'bold'), foreground ='darkred', tabs = ('3c', NUMERIC, '9,3c', '10,6c', NUMERIC))
-Tj.tag_configure('tempKalt', font=(SCHRIFT, SCHRIFTGROESSE + 4, 'bold'), foreground ='darkblue', tabs = ('3c', NUMERIC, '9,3c', '10,6c', NUMERIC))
-Tj.tag_configure('tempNormal', font=(SCHRIFT, SCHRIFTGROESSE + 4, 'bold'), foreground ='darkgreen', tabs = ('3c', NUMERIC, '9,3c', '10,6c', NUMERIC))
-Tj.tag_configure('zusatz', font=(SCHRIFT, SCHRIFTGROESSE - 2), tabs = ('3c','9,3c', '10,6c', NUMERIC), wrap = WORD)
+Tj.tag_configure('tempHeiss',    font=(SCHRIFT, SCHRIFTGROESSE + 4, 'bold'), tabs = ('3c', NUMERIC, '9,3c', '10,6c', NUMERIC), foreground ='darkred')
+Tj.tag_configure('tempKalt',     font=(SCHRIFT, SCHRIFTGROESSE + 4, 'bold'), tabs = ('3c', NUMERIC, '9,3c', '10,6c', NUMERIC), foreground ='darkblue')
+Tj.tag_configure('tempNormal',   font=(SCHRIFT, SCHRIFTGROESSE + 4, 'bold'), tabs = ('3c', NUMERIC, '9,3c', '10,6c', NUMERIC), foreground ='darkgreen')
+Tj.tag_configure('normal',       font=(SCHRIFT, SCHRIFTGROESSE    ),         tabs = ('3c',          '9,3c', '10,6c', NUMERIC), wrap = WORD)
+Tj.tag_configure('zusatz',       font=(SCHRIFT, SCHRIFTGROESSE - 2),         tabs = ('3c',          '9,3c', '10,6c', NUMERIC), wrap = WORD)
+Tj.tag_configure('leer',         font=(SCHRIFT, SCHRIFTGROESSE -10))
 
 T0 = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
-T0.tag_configure('ueberschrift', font=(SCHRIFT, SCHRIFTGROESSE, 'bold'), tabs = ('2,5c', '5,5c'))
-T0.tag_configure('normal', font=(SCHRIFT, SCHRIFTGROESSE), tabs = ('2,7c', NUMERIC, '5,5c'))
-T0.tag_configure('leer', font=(SCHRIFT, SCHRIFTGROESSE-8))
-T0.tag_configure('zusatz', font=(SCHRIFT, SCHRIFTGROESSE - 2), tabs = ('2,7c', '5,5c'))
-T0.tag_configure('zusatzregen', font=(SCHRIFT, SCHRIFTGROESSE - 2), tabs = ('2,6c', '5,5c'))
+T0.tag_configure('ueberschrift', font=(SCHRIFT, SCHRIFTGROESSE, 'bold'), tabs = ('2,5c',          '5,5c'))
+T0.tag_configure('normal',       font=(SCHRIFT, SCHRIFTGROESSE    ),     tabs = ('2,7c', NUMERIC, '5,5c'))
+T0.tag_configure('zusatz',       font=(SCHRIFT, SCHRIFTGROESSE - 2),     tabs = ('2,7c',          '5,5c'))
+T0.tag_configure('zusatzregen',  font=(SCHRIFT, SCHRIFTGROESSE - 2),     tabs = ('2,6c',          '5,5c'))
+T0.tag_configure('leer',         font=(SCHRIFT, SCHRIFTGROESSE - 8))
 
 T1 = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
 T1.tag_configure('ueberschrift', font=(SCHRIFT, SCHRIFTGROESSE, 'bold'))
-T1.tag_configure('normal', font=(SCHRIFT, SCHRIFTGROESSE - 1), tabs = ('2,3c', NUMERIC))
-T1.tag_configure('leer', font=(SCHRIFT, SCHRIFTGROESSE-9))
-T1.tag_configure('zusatzregen', font=(SCHRIFT, SCHRIFTGROESSE - 2), tabs = ('2,2c'))
+T1.tag_configure('normal',       font=(SCHRIFT, SCHRIFTGROESSE - 1), tabs = ('2,3c', NUMERIC))
+T1.tag_configure('zusatzregen',  font=(SCHRIFT, SCHRIFTGROESSE - 2), tabs = ('2,2c'))
+T1.tag_configure('leer',         font=(SCHRIFT, SCHRIFTGROESSE - 9))
 
-T2 = Text(master=window, relief = 'flat', bd = 0, bg = BGCOLOR)
+T2 = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
 T2.tag_configure('ueberschrift', font=(SCHRIFT, SCHRIFTGROESSE, 'bold'))
-T2.tag_configure('normal', font=(SCHRIFT, SCHRIFTGROESSE - 1), tabs = ('2,3c', NUMERIC))
-T2.tag_configure('leer', font=(SCHRIFT, SCHRIFTGROESSE-9))
-T2.tag_configure('zusatzregen', font=(SCHRIFT, SCHRIFTGROESSE - 2), tabs = ('2,2c'))
+T2.tag_configure('normal',       font=(SCHRIFT, SCHRIFTGROESSE - 1), tabs = ('2,3c', NUMERIC))
+T2.tag_configure('zusatzregen',  font=(SCHRIFT, SCHRIFTGROESSE - 2), tabs = ('2,2c'))
+T2.tag_configure('leer',         font=(SCHRIFT, SCHRIFTGROESSE - 9))
 
-T3 = Text(master=window, relief = 'flat', bd = 0, bg = BGCOLOR)
+T3 = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
 T3.tag_configure('ueberschrift', font=(SCHRIFT, SCHRIFTGROESSE, 'bold'))
-T3.tag_configure('normal', font=(SCHRIFT, SCHRIFTGROESSE - 1), tabs = ('2,3c', NUMERIC))
-T3.tag_configure('leer', font=(SCHRIFT, SCHRIFTGROESSE-9))
-T3.tag_configure('zusatzregen', font=(SCHRIFT, SCHRIFTGROESSE - 2), tabs = ('2,2c'))
+T3.tag_configure('normal',       font=(SCHRIFT, SCHRIFTGROESSE - 1), tabs = ('2,3c', NUMERIC))
+T3.tag_configure('zusatzregen',  font=(SCHRIFT, SCHRIFTGROESSE - 2), tabs = ('2,2c'))
+T3.tag_configure('leer',         font=(SCHRIFT, SCHRIFTGROESSE - 9))
 
 # Formate für die Vorhersagebilder
 TjI = Text(master=window, relief = 'flat', borderwidth = 0)
@@ -486,6 +506,7 @@ T0I = Text(master=window, relief = 'flat', borderwidth = 0)
 T1I = Text(master=window, relief = 'flat', borderwidth = 0)
 T2I = Text(master=window, relief = 'flat', borderwidth = 0)
 T3I = Text(master=window, relief = 'flat', borderwidth = 0)
+TG  = Text(master=window, relief = 'flat', borderwidth = 0)
 
 fehler = PhotoImage(file = './fehler.pgm')
 TjI.image_create(INSERT, image=fehler)
@@ -505,13 +526,16 @@ T0I.place(x = 25,  y = 160, width = 51,  height = 51 )
 T1I.place(x = 10,  y = 253, width = 51,  height = 51 )
 T2I.place(x = 170, y = 253, width = 51,  height = 51 )
 T3I.place(x = 330, y = 253, width = 51,  height = 51 )
+TG.place( x = 0,   y = 0,   width = 0,   height = 0  )
 
 # Knöpfe
 print u'Knoepfe einbauen'
-buttonAlarm = Button(master=window, text='', bg="white", fg="white", relief='flat', command=jetzt)
-buttonExit = Button(master=window, text="X", bg=BGCOLOR, fg="lightgrey", relief='flat', command=beenden)
-buttonAlarm.place(x = 400, y = 130, width = 80, height = 96)
-buttonExit.place( x = 460, y = 0, width = 20, height = 20)
+buttonAlarm = Button(master=window, text='',      bg="white", fg="white",     relief='flat', command=jetzt  )
+buttonRadar = Button(master=window, text='Radar', bg="white", fg="black",     relief='flat', command=radar  )
+buttonExit  = Button(master=window, text="X",     bg=BGCOLOR, fg="lightgrey", relief='flat', command=beenden)
+buttonRadar.place(x = 400, y = 130, width = 80, height = 49)
+buttonAlarm.place(x = 400, y = 178, width = 80, height = 48)
+buttonExit.place( x = 460, y = 0,   width = 20, height = 20)
 
 # starte Zeitloop in einem weiteren thread
 
