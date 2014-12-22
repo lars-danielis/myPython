@@ -10,17 +10,55 @@ from glob import glob
 import os
 from Tkinter import *
 import threading
+from PIL import Image, ImageTk
 import sys
 #rpi
-import Adafruit_DHT
+#import Adafruit_DHT
 
 BGCOLOR = "white"
 SCHRIFT = "FreeSans"
 WEISS   = "#FFF"
 #rpi
-#SCHRIFTGROESSE = 10 #dell
-SCHRIFTGROESSE = 13 #asus und r-pi
+SCHRIFTGROESSE = 10 #dell
+#SCHRIFTGROESSE = 13 #asus und r-pi
 
+class MyLabel(Label):
+    def __init__(self, master, filename):
+        im = Image.open(filename)
+        seq =  []
+        try:
+            while 1:
+                seq.append(im.copy())
+                im.seek(len(seq)) # skip to next frame
+        except EOFError:
+            pass # we're done
+
+        try:
+            self.delay = 500
+        except KeyError:
+            self.delay = 100
+
+        first = seq[0].convert('RGBA')
+        self.frames = [ImageTk.PhotoImage(first)]
+
+        Label.__init__(self, master, image=self.frames[0])
+
+        temp = seq[0]
+        for image in seq[1:]:
+            temp.paste(image)
+            frame = temp.convert('RGBA')
+            self.frames.append(ImageTk.PhotoImage(frame))
+
+        self.idx = 0
+
+        self.cancel = self.after(self.delay, self.play)
+
+    def play(self):
+        self.config(image=self.frames[self.idx])
+        self.idx += 1
+        if self.idx == len(self.frames):
+            self.idx = 0
+        self.cancel = self.after(self.delay, self.play)
 
 class myThread(threading.Thread):
     def __init__(self, threadID, name):
@@ -36,6 +74,7 @@ process = myThread(10, 'Zeitprozess')
 runZeitLoop = TRUE
 TjWTag = ''
 filenameIj = ''
+filenameG = ''
 t = localtime()
 tj = localtime()
 json = {}
@@ -89,6 +128,7 @@ def alarmText():
 
 
 def radar():
+    global filenameG
     print "zeige GIF"
     Tj.delete(1.0, END)
     TjI.place(x = 25,  y = 50,  width = 0,  height = 0 )
@@ -98,16 +138,19 @@ def radar():
     T3I.place(x = 330, y = 253, width = 0,  height = 0 )
     T0.place( x = 0,   y = 130, width = 0, height = 0)
     Tj.place( x = 0,   y = 0,   width = 481, height = 226)
-    TG.place( x = 0,   y = 0,   width = 480, height = 320)
+    TG = MyLabel(window, filenameG)
+    TG.place( x = 0,   y = 0,   width = 480, height = 290)
     buttonAlarm.place(x = 400, y = 178, width = 0, height = 0)
+    buttonRadar.place(x = 0, y = 290, width = 480, height = 30)
     buttonRadar.config(text='Zurück', command=jetzt)
+
 
 
 # Funktion um entweder einmalig zum Testen (mitLoop = 0) per Funktionsaufruf benutzt zu werden, oder mitLoop = 1
 # für die Nutzung in einem separaten Thread, der dann pro Minute die Anzeige aktualisiert (für die Anzeige der
 # Minuten seit Aktualisierung) und alle 20 Min (1200 Sekunden) die Daten neu abfragt
 def ZeitLoop():
-    global TjWTag, t, tj, json, json, filenameIj, warte, runZeitLoop
+    global TjWTag, t, tj, json, json, filenameIj, warte, runZeitLoop, filenameG
     tl = 0
     while runZeitLoop:
 
@@ -121,13 +164,18 @@ def ZeitLoop():
             try:
                 jsonRaw = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/conditions/forecast/astronomy/alerts/lang:DL/pws:1/q/pws:ibadenwr274.json")
                 #rpi
-                #json = jsonRaw.json()
-                json = jsonRaw.json
+                json = jsonRaw.json()
+                #json = jsonRaw.json
                 print "erfolgreich"
+
+                # alte Icons löschen
+                print "lösche alte Icons"
+                for filename in glob("*.gif"):
+                    os.remove(filename)
 
                 print "versuche GIF zu holen ...",
                 try:
-                    filenameG = wget.download("http://api.wunderground.com/api/edc8d609ba28e7c2/animatedradar/animatedsatellite/lang:DL/q/eislingen.gif?sat.width=480&sat.height=320&rad.width=480&rad.height=320&num=8&delay=25&interval=5&rad.smooth=1")           # GIF downloaden
+                    filenameG = wget.download("http://api.wunderground.com/api/edc8d609ba28e7c2/animatedradar/animatedsatellite/lang:DL/q/eislingen.gif?sat.width=480&sat.height=290&rad.width=480&rad.height=320&delay=50&sat.interval=15&rad.smooth=1&sat.key=sat_ir4&sat.smooth=1&sat.borders=1&sat.basemap=1&sat.gtt=170&rad.newmaps=1&num=8&sat.timelabel=1&sat.timelabel.y=14")           # GIF downloaden
                     print "erfolgreich"
                 except IOError:
                     filenameG = './fehler.pgm'
@@ -143,11 +191,6 @@ def ZeitLoop():
                 #TjZeit = strftime("%H:%M", gmtime(email.utils.mktime_tz(zeitRoh) + zeitRoh[9]))
 
                 # Icons holen,
-                # vorher alte löschen
-                print "lösche alte Icons"
-                for filename in glob("*.gif"):
-                    os.remove(filename)
-                # holen
                 print "hole Jetzt-Icon"
                 iconUrlIj = json['current_observation']['icon_url'] # IconUrl holen
                 iconUrlIj = iconUrlIj.replace("/k/", "/a/")         # Art des Icons tauschen
@@ -372,13 +415,14 @@ def jetzt():
     T3I.place(x = 330, y = 253, width = 51,  height = 51 )
     T0.place( x = 0,   y = 130, width = 481, height = 100)
     Tj.place( x = 0,   y = 0,   width = 481, height = 135)
+    TG.after_cancel(TG.cancel)
     TG.place( x = 0,   y = 0,   width = 0, height = 0)
     buttonAlarm.place(x = 400, y = 178, width = 80, height = 48)
     buttonRadar.place(x = 400, y = 130, width = 80, height = 49)
     buttonRadar.config(text='Radar', command=radar)
     #rpi
-    feuchteInnen, temperaturInnen = Adafruit_DHT.read_retry(Adafruit_DHT.AM2302,26)
-    #feuchteInnen = 0.0; temperaturInnen = 0.0
+    #feuchteInnen, temperaturInnen = Adafruit_DHT.read_retry(Adafruit_DHT.AM2302,26)
+    feuchteInnen = 0.0; temperaturInnen = 0.0
     if feuchteInnen is None and temperaturInnen is None:
         feuchteInnen = 0.0; temperaturInnen = 0.0
     Tj.delete(1.0, END)
@@ -557,3 +601,5 @@ print 'Starte Zeit- und Fensterprozess'
 process.start()
 window.mainloop()
 print 'Beende Anzeige'
+
+
