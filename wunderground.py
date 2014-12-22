@@ -21,6 +21,7 @@ WEISS   = "#FFF"
 #SCHRIFTGROESSE = 10 #dell
 SCHRIFTGROESSE = 13 #asus und r-pi
 
+
 class myThread(threading.Thread):
     def __init__(self, threadID, name):
         threading.Thread.__init__(self)
@@ -37,7 +38,6 @@ TjWTag = ''
 filenameIj = ''
 t = localtime()
 tj = localtime()
-json = {}
 json = {}
 warte = 60
 nummer = 0
@@ -87,6 +87,7 @@ def alarmText():
     else:
         buttonAlarm.config(text='Nächster', command=nextAlarm)
 
+
 def radar():
     print "zeige GIF"
     Tj.delete(1.0, END)
@@ -100,6 +101,7 @@ def radar():
     TG.place( x = 0,   y = 0,   width = 480, height = 320)
     buttonAlarm.place(x = 400, y = 178, width = 0, height = 0)
     buttonRadar.config(text='Zurück', command=jetzt)
+
 
 # Funktion um entweder einmalig zum Testen (mitLoop = 0) per Funktionsaufruf benutzt zu werden, oder mitLoop = 1
 # für die Nutzung in einem separaten Thread, der dann pro Minute die Anzeige aktualisiert (für die Anzeige der
@@ -172,6 +174,9 @@ def ZeitLoop():
                     T0I.image_create(INSERT, image=imgI0)
                 except IOError:
                     filenameI0 = './fehler.pgm'
+                    imgI0 = PhotoImage(file = filenameI0)
+                    T0I.delete(1.0, END)
+                    T0I.image_create(INSERT, image=imgI0)
                     print "Heute-Icon konnte nicht geladen werden"
 
                 iconUrlI1 = json['forecast']['simpleforecast']['forecastday'][1]['icon_url'] # IconUrl holen
@@ -183,6 +188,9 @@ def ZeitLoop():
                     T1I.image_create(INSERT, image=imgI1)
                 except IOError:
                     filenameI1 = './fehler.pgm'
+                    imgI1 = PhotoImage(file = filenameI1)
+                    T1I.delete(1.0, END)
+                    T1I.image_create(INSERT, image=imgI1)
                     print "Morgen-Icon konnte nicht geladen werden"
 
                 iconUrlI2 = json['forecast']['simpleforecast']['forecastday'][2]['icon_url'] # IconUrl holen
@@ -194,6 +202,9 @@ def ZeitLoop():
                     T2I.image_create(INSERT, image=imgI2)
                 except IOError:
                     filenameI2 = './fehler.pgm'
+                    imgI2 = PhotoImage(file = filenameI2)
+                    T2I.delete(1.0, END)
+                    T2I.image_create(INSERT, image=imgI2)
                     print "Übermorgen-Icon konnte nicht geladen werden"
 
                 iconUrlI3 = json['forecast']['simpleforecast']['forecastday'][3]['icon_url'] # IconUrl holen
@@ -205,6 +216,9 @@ def ZeitLoop():
                     T3I.image_create(INSERT, image=imgI3)
                 except IOError:
                     filenameI3 = './fehler.pgm'
+                    imgI3 = PhotoImage(file = filenameI3)
+                    T3I.delete(1.0, END)
+                    T3I.image_create(INSERT, image=imgI3)
                     print "Überübermorgen-Icon konnte nicht geladen werden"
 
             except requests.exceptions.ConnectionError:
@@ -223,19 +237,19 @@ def ZeitLoop():
             if mond < 5:
                 T0.image_create(END, image = mondI0)
                 T0.insert(END, ' Neumond ' + json['moon_phase']['percentIlluminated'] + '%\n', 'zusatz')
-            elif mond >= 5 and mond < 12:
+            elif 5 <= mond < 12:
                 T0.image_create(END, image = mondI0)
                 T0.insert(END, ' ' + json['moon_phase']['percentIlluminated'] + '%\n', 'zusatz')
-            elif mond >= 12 and mond < 37:
+            elif 12 <= mond < 37:
                 T0.image_create(END, image = mondI1)
                 T0.insert(END, ' ' + json['moon_phase']['percentIlluminated'] + '%\n', 'zusatz')
-            elif mond >= 37 and mond < 62:
+            elif 37 <= mond < 62:
                 T0.image_create(END, image = mondI2)
                 T0.insert(END, ' ' + json['moon_phase']['percentIlluminated'] + '%\n', 'zusatz')
-            elif mond >= 62 and mond < 87:
+            elif 62 <= mond < 87:
                 T0.image_create(END, image = mondI3)
                 T0.insert(END, ' ' + json['moon_phase']['percentIlluminated'] + '%\n', 'zusatz')
-            elif mond >= 87 and mond < 95:
+            elif 87 <= mond < 95:
                 T0.image_create(END, image = mondI4)
                 T0.insert(END, ' ' + json['moon_phase']['percentIlluminated'] + '%\n', 'zusatz')
             elif mond >= 95:
@@ -346,7 +360,7 @@ def ZeitLoop():
     print 'beende Zeitloop'
 
 def jetzt():
-    global TjWTag, t, tj, json, jsonD, filenameIj, nummer
+    global TjWTag, t, tj, json, filenameIj, nummer
     print "erzeuge Texte für aktuelle Werte je Minute"
     # Wetter jetzt
     nummer = 0
@@ -391,7 +405,7 @@ def jetzt():
     Tj.image_create(END, image=tropfenI)
     Tj.insert(END, ' ' + json['current_observation']['relative_humidity'], 'normal')
     Tj.insert(END, '\t', 'normal')
-    if feuchteInnen <= 60 and feuchteInnen >= 40:
+    if 60 >= feuchteInnen >= 40:
         Tj.image_create(END, image=frohI)
     else:
         Tj.image_create(END, image=traurigI)
@@ -485,19 +499,19 @@ T0.tag_configure('leer',         font=(SCHRIFT, SCHRIFTGROESSE - 8))
 T1 = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
 T1.tag_configure('ueberschrift', font=(SCHRIFT, SCHRIFTGROESSE, 'bold'))
 T1.tag_configure('normal',       font=(SCHRIFT, SCHRIFTGROESSE - 1), tabs = ('2,3c', NUMERIC))
-T1.tag_configure('zusatzregen',  font=(SCHRIFT, SCHRIFTGROESSE - 2), tabs = ('2,2c'))
+T1.tag_configure('zusatzregen',  font=(SCHRIFT, SCHRIFTGROESSE - 2), tabs =  '2,2c')
 T1.tag_configure('leer',         font=(SCHRIFT, SCHRIFTGROESSE - 9))
 
 T2 = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
 T2.tag_configure('ueberschrift', font=(SCHRIFT, SCHRIFTGROESSE, 'bold'))
 T2.tag_configure('normal',       font=(SCHRIFT, SCHRIFTGROESSE - 1), tabs = ('2,3c', NUMERIC))
-T2.tag_configure('zusatzregen',  font=(SCHRIFT, SCHRIFTGROESSE - 2), tabs = ('2,2c'))
+T2.tag_configure('zusatzregen',  font=(SCHRIFT, SCHRIFTGROESSE - 2), tabs =  '2,2c')
 T2.tag_configure('leer',         font=(SCHRIFT, SCHRIFTGROESSE - 9))
 
 T3 = Text(master=window, relief = 'flat', borderwidth = 0, bg = BGCOLOR)
 T3.tag_configure('ueberschrift', font=(SCHRIFT, SCHRIFTGROESSE, 'bold'))
 T3.tag_configure('normal',       font=(SCHRIFT, SCHRIFTGROESSE - 1), tabs = ('2,3c', NUMERIC))
-T3.tag_configure('zusatzregen',  font=(SCHRIFT, SCHRIFTGROESSE - 2), tabs = ('2,2c'))
+T3.tag_configure('zusatzregen',  font=(SCHRIFT, SCHRIFTGROESSE - 2), tabs =  '2,2c')
 T3.tag_configure('leer',         font=(SCHRIFT, SCHRIFTGROESSE - 9))
 
 # Formate für die Vorhersagebilder
