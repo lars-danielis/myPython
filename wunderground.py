@@ -440,8 +440,8 @@ def jetzt():
     if feuchteInnen is None and temperaturInnen is None:
         feuchteInnen = 0.0; temperaturInnen = 0.0
     Tj.delete(1.0, END)
-    Tj.insert(INSERT, '\t' + TjWTag, 'ueberschrift')
-    Tj.insert(END, '  letzte Aktualisierung vor ' + str(int((t-tj)/60)) +' Minuten\n', 'zusatz')
+    Tj.insert(INSERT, 'Aktuelles Wetter ', 'ueberschrift')
+    Tj.insert(END, TjWTag + ' vor ' + str(int((t-tj)/60)) +' Minuten aktualisiert\n', 'zusatz')
 
     Tj.insert(END, ' \n', 'leer')
 
