@@ -13,52 +13,19 @@ import threading
 from PIL import Image, ImageTk
 import sys
 #rpi
-#import Adafruit_DHT
+import Adafruit_DHT
 
 BGCOLOR = "white"
 SCHRIFT = "FreeSans"
 WEISS   = "#FFF"
 #rpi
-SCHRIFTGROESSE = 10 #dell
-#SCHRIFTGROESSE = 13 #asus und r-pi
+#SCHRIFTGROESSE = 10 #dell
+SCHRIFTGROESSE = 13 #asus und r-pi
 
-class MyLabel(Label):
-    def __init__(self, master, filename):
-        im = Image.open(filename)
-        seq =  []
-        try:
-            while 1:
-                seq.append(im.copy())
-                im.seek(len(seq)) # skip to next frame
-        except EOFError:
-            pass # we're done
-
-        try:
-            self.delay = 500
-        except KeyError:
-            self.delay = 100
-
-        first = seq[0].convert('RGBA')
-        self.frames = [ImageTk.PhotoImage(first)]
-
-        Label.__init__(self, master, image=self.frames[0])
-
-        temp = seq[0]
-        for image in seq[1:]:
-            temp.paste(image)
-            frame = temp.convert('RGBA')
-            self.frames.append(ImageTk.PhotoImage(frame))
-
-        self.idx = 0
-
-        self.cancel = self.after(self.delay, self.play)
-
-    def play(self):
-        self.config(image=self.frames[self.idx])
-        self.idx += 1
-        if self.idx == len(self.frames):
-            self.idx = 0
-        self.cancel = self.after(self.delay, self.play)
+#        self.config(image=self.frames[self.idx])
+#        self.idx += 1
+#        if self.idx == len(self.frames):
+#            self.idx = 0
 
 class myThread(threading.Thread):
     def __init__(self, threadID, name):
@@ -78,11 +45,18 @@ filenameG = ''
 t = localtime()
 tj = localtime()
 json = {}
+anzeigeRadar = 0
 warte = 60
 nummer = 0
+gNummer = 0
 gelberText =  u'\nDas Wetter ist potenziell gefährlich. Die vorhergesagten Wetterphänomene sind nicht wirklich ungewöhnlich, aber eine erhöhte Aufmerksamkeit ist angebracht.'
 orangerText = u'\nDas Wetter ist gefährlich. Ungewöhnliche meteorologische Phänomene wurden vorhergesagt. Schäden und Unfälle sind wahrscheinlich.'
 roterText =   u'\nDas Wetter ist sehr gefährlich. Ungewöhnlich intensive meteorologische Phänomene wurden vorhergesagt. Extreme Schäden und Unfälle bedrohen Leben, Hab und Gut.'
+
+def beendeRadar():
+    anzeigeRadar = 0
+    TG.place( x = 0,   y = 0,   width = 0, height = 0)
+    jetzt()
 
 def beenden():
     global runZeitLoop
@@ -95,6 +69,16 @@ def nextAlarm():
     global nummer
     nummer += 1
     alarmText()
+
+def nextGif():
+    global gNummer
+    gNummer += 1
+    radar()
+
+def prevGif():
+    global gNummer
+    gNummer -= 1
+    radar()
 
 def alarmText():
     global json, warte, nummer
@@ -128,29 +112,37 @@ def alarmText():
 
 
 def radar():
-    global filenameG
+    global filenameG, anzeigeRadar, warte, gNummer, frames
+    if gNummer < 1:
+        gNummer = 1
+    if gNummer > len(frames)-1:
+        gNummer = len(frames)-1
+    anzeigeRadar = 1
+    warte = 60
     print "zeige GIF"
     Tj.delete(1.0, END)
-    TjI.place(x = 25,  y = 50,  width = 0,  height = 0 )
-    T0I.place(x = 25,  y = 160, width = 0,  height = 0 )
-    T1I.place(x = 10,  y = 253, width = 0,  height = 0 )
-    T2I.place(x = 170, y = 253, width = 0,  height = 0 )
-    T3I.place(x = 330, y = 253, width = 0,  height = 0 )
+    TG.delete(1.0, END)
+    TjI.place(x = 25,  y = 50,  width = 0, height = 0)
+    T0I.place(x = 25,  y = 160, width = 0, height = 0)
+    T1I.place(x = 10,  y = 253, width = 0, height = 0)
+    T2I.place(x = 170, y = 253, width = 0, height = 0)
+    T3I.place(x = 330, y = 253, width = 0, height = 0)
     T0.place( x = 0,   y = 130, width = 0, height = 0)
-    Tj.place( x = 0,   y = 0,   width = 481, height = 226)
-    TG = MyLabel(window, filenameG)
+    Tj.place( x = 0,   y = 0,   width = 0, height = 0)
+    TG.image_create(END, image=frames[gNummer])
     TG.place( x = 0,   y = 0,   width = 480, height = 290)
     buttonAlarm.place(x = 400, y = 178, width = 0, height = 0)
-    buttonRadar.place(x = 0, y = 290, width = 480, height = 30)
-    buttonRadar.config(text='Zurück', command=jetzt)
-
+    buttonRadar.config(text='Zurück', command=beendeRadar)
+    buttonRadar.place(    x = 160, y = 289, width = 161, height = 31)
+    buttonRadarNext.place(x = 320, y = 289, width = 161, height = 31)
+    buttonRadarPrev.place(x =   0, y = 289, width = 161, height = 31)
 
 
 # Funktion um entweder einmalig zum Testen (mitLoop = 0) per Funktionsaufruf benutzt zu werden, oder mitLoop = 1
 # für die Nutzung in einem separaten Thread, der dann pro Minute die Anzeige aktualisiert (für die Anzeige der
 # Minuten seit Aktualisierung) und alle 20 Min (1200 Sekunden) die Daten neu abfragt
 def ZeitLoop():
-    global TjWTag, t, tj, json, json, filenameIj, warte, runZeitLoop, filenameG
+    global TjWTag, t, tj, json, json, filenameIj, warte, runZeitLoop, filenameG, frames
     tl = 0
     while runZeitLoop:
 
@@ -164,8 +156,8 @@ def ZeitLoop():
             try:
                 jsonRaw = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/conditions/forecast/astronomy/alerts/lang:DL/pws:1/q/pws:ibadenwr274.json")
                 #rpi
-                json = jsonRaw.json()
-                #json = jsonRaw.json
+                #json = jsonRaw.json()
+                json = jsonRaw.json
                 print "erfolgreich"
 
                 # alte Icons löschen
@@ -175,14 +167,33 @@ def ZeitLoop():
 
                 print "versuche GIF zu holen ...",
                 try:
-                    filenameG = wget.download("http://api.wunderground.com/api/edc8d609ba28e7c2/animatedradar/animatedsatellite/lang:DL/q/eislingen.gif?sat.width=480&sat.height=290&rad.width=480&rad.height=320&delay=50&sat.interval=15&rad.smooth=1&sat.key=sat_ir4&sat.smooth=1&sat.borders=1&sat.basemap=1&sat.gtt=170&rad.newmaps=1&num=8&sat.timelabel=1&sat.timelabel.y=14")           # GIF downloaden
+                    filenameG = wget.download("http://api.wunderground.com/api/edc8d609ba28e7c2/animatedradar/animatedsatellite/lang:DL/q/eislingen.gif?sat.width=480&sat.height=290&rad.width=480&rad.height=2900&delay=50&sat.interval=15&rad.smooth=1&sat.key=sat_ir4&sat.smooth=1&sat.borders=1&sat.basemap=1&sat.gtt=107&rad.newmaps=1&num=8&sat.timelabel=1&sat.timelabel.y=14")           # GIF downloaden
                     print "erfolgreich"
                 except IOError:
                     filenameG = './fehler.pgm'
                     print "keine Verbindung"
-                imgG = PhotoImage(file = filenameG)
-                TG.delete(1.0, END)
-                TG.image_create(INSERT, image=imgG)
+                print "versuche GIF zu lesen ...",
+                try:
+                    imgG = PhotoImage(file = filenameG)
+                    print "erfolgreich"
+                except TclError:
+                    filenameG = './fehler.pgm'
+                    imgG = PhotoImage(file = filenameG)
+                    print "kaputtes GIF entdeckt"
+                im = Image.open(filenameG)
+                seq =  []
+                try:
+                    while 1:
+                        seq.append(im.copy())
+                        im.seek(len(seq)) # skip to next frame
+                except EOFError:
+                    pass # we're done
+                first = seq[0].convert('RGBA')
+                temp = seq[0]
+                for image in seq[1:]:
+                    temp.paste(image)
+                    frame = temp.convert('RGBA')
+                    frames.append(ImageTk.PhotoImage(frame))
 
                 # Zeitstempel der Wetterdaten holen, parsen und in deutsches Format wandeln
                 zeitRoh = email.utils.parsedate_tz(json['current_observation']['observation_time_rfc822'])
@@ -403,10 +414,11 @@ def ZeitLoop():
     print 'beende Zeitloop'
 
 def jetzt():
-    global TjWTag, t, tj, json, filenameIj, nummer
+    global TjWTag, t, tj, json, filenameIj, nummer, gNummer
     print "erzeuge Texte für aktuelle Werte je Minute"
     # Wetter jetzt
     nummer = 0
+    gNummer = 0
     Tj.config(bg=BGCOLOR)
     TjI.place(x = 25,  y = 50,  width = 51,  height = 51 )
     T0I.place(x = 25,  y = 160, width = 51,  height = 51 )
@@ -414,15 +426,16 @@ def jetzt():
     T2I.place(x = 170, y = 253, width = 51,  height = 51 )
     T3I.place(x = 330, y = 253, width = 51,  height = 51 )
     T0.place( x = 0,   y = 130, width = 481, height = 100)
+    TG.place( x = 0,   y = 0,   width = 0,   height = 0  )
     Tj.place( x = 0,   y = 0,   width = 481, height = 135)
-    TG.after_cancel(TG.cancel)
-    TG.place( x = 0,   y = 0,   width = 0, height = 0)
-    buttonAlarm.place(x = 400, y = 178, width = 80, height = 48)
-    buttonRadar.place(x = 400, y = 130, width = 80, height = 49)
+    buttonAlarm.place(    x = 400, y = 178, width = 80, height = 48)
+    buttonRadar.place(    x = 400, y = 130, width = 80, height = 49)
+    buttonRadarNext.place(x =   0, y =   0, width =  0, height =  0)
+    buttonRadarPrev.place(x =   0, y =   0, width =  0, height =  0)
     buttonRadar.config(text='Radar', command=radar)
     #rpi
-    #feuchteInnen, temperaturInnen = Adafruit_DHT.read_retry(Adafruit_DHT.AM2302,26)
-    feuchteInnen = 0.0; temperaturInnen = 0.0
+    feuchteInnen, temperaturInnen = Adafruit_DHT.read_retry(Adafruit_DHT.AM2302,26)
+    #feuchteInnen = 0.0; temperaturInnen = 0.0
     if feuchteInnen is None and temperaturInnen is None:
         feuchteInnen = 0.0; temperaturInnen = 0.0
     Tj.delete(1.0, END)
@@ -572,6 +585,8 @@ T0I.image_create(INSERT, image=fehler)
 T1I.image_create(INSERT, image=fehler)
 T2I.image_create(INSERT, image=fehler)
 T3I.image_create(INSERT, image=fehler)
+TG.image_create( INSERT, image=fehler)
+frames = []
 
 # Text-Labels mit Text in Fenster einbauen und anordnen
 Tj.place( x = 0,   y = 0,   width = 481, height = 135)
@@ -588,12 +603,16 @@ TG.place( x = 0,   y = 0,   width = 0,   height = 0  )
 
 # Knöpfe
 print u'Knoepfe einbauen'
-buttonAlarm = Button(master=window, text='',      bg="white", fg="white",     relief='flat', command=jetzt  )
-buttonRadar = Button(master=window, text='Radar', bg="white", fg="black",     relief='flat', command=radar  )
-buttonExit  = Button(master=window, text="X",     bg=BGCOLOR, fg="lightgrey", relief='flat', command=beenden)
-buttonRadar.place(x = 400, y = 130, width = 80, height = 49)
-buttonAlarm.place(x = 400, y = 178, width = 80, height = 48)
-buttonExit.place( x = 460, y = 0,   width = 20, height = 20)
+buttonAlarm =     Button(master=window, text='',       bg="white", fg="white",     relief='flat', command=jetzt  )
+buttonRadar =     Button(master=window, text='Radar',  bg="white", fg="black",     relief='flat', command=radar  )
+buttonRadarNext = Button(master=window, text='vor',    bg="white", fg="black",     relief='flat', command=nextGif)
+buttonRadarPrev = Button(master=window, text='zurück', bg="white", fg="black",     relief='flat', command=prevGif)
+buttonExit  =     Button(master=window, text="X",      bg=BGCOLOR, fg="lightgrey", relief='flat', command=beenden)
+buttonRadar.place(    x = 400, y = 130, width = 80, height = 49)
+buttonRadarNext.place(x = 0  , y =   0, width =  0, height =  0)
+buttonRadarPrev.place(x = 0  , y =   0, width =  0, height =  0)
+buttonAlarm.place(    x = 400, y = 178, width = 80, height = 48)
+buttonExit.place(     x = 460, y = 0,   width = 20, height = 20)
 
 # starte Zeitloop in einem weiteren thread
 
