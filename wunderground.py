@@ -89,6 +89,7 @@ def alarmText():
     T3I.place(x = 330, y = 253, width = 0,  height = 0 )
     T0.place( x = 0,   y = 130, width = 0, height = 0)
     Tj.place( x = 0,   y = 0,   width = 481, height = 226)
+    buttonAlarm.config(bg="grey", fg="black", command=alarmText)
     buttonAlarm.place(x = 320, y = 225, width = 161, height = 97)
     buttonRadar.place(x = 400, y = 130, width = 0,   height = 0 )
     ablaufText = strftime("%A %H:%M Uhr", strptime(json['alerts'][nummer]['expires'],'%Y-%m-%d %H:%M:%S %Z'))
@@ -106,15 +107,15 @@ def alarmText():
         Tj.config(bg='red')
         Tj.insert(END, roterText, 'zusatz')
     if (nummer + 2) > len(json['alerts']):
-        buttonAlarm.config(text='zurück', command=jetzt)
+        buttonAlarm.config(text='Zurück', command=jetzt)
     else:
         buttonAlarm.config(text='Nächster', command=nextAlarm)
 
 
 def radar():
     global filenameG, anzeigeRadar, warte, gNummer, frames
-    if gNummer < 1:
-        gNummer = 1
+    if gNummer < 0:
+        gNummer = 0
     if gNummer > len(frames)-1:
         gNummer = len(frames)-1
     anzeigeRadar = 1
@@ -167,7 +168,7 @@ def ZeitLoop():
 
                 print "versuche GIF zu holen ...",
                 try:
-                    filenameG = wget.download("http://api.wunderground.com/api/edc8d609ba28e7c2/animatedradar/animatedsatellite/lang:DL/q/eislingen.gif?sat.width=480&sat.height=290&rad.width=480&rad.height=2900&delay=50&sat.interval=15&rad.smooth=1&sat.key=sat_ir4&sat.smooth=1&sat.borders=1&sat.basemap=1&sat.gtt=107&rad.newmaps=1&num=8&sat.timelabel=1&sat.timelabel.y=14")           # GIF downloaden
+                    filenameG = wget.download("http://api.wunderground.com/api/edc8d609ba28e7c2/animatedradar/animatedsatellite/lang:DL/q/eislingen.gif?sat.width=480&sat.height=290&rad.width=480&rad.height=290&delay=100&sat.interval=30&rad.smooth=1&sat.key=sat_ir4&sat.smooth=1&sat.borders=1&sat.basemap=1&sat.gtt=107&rad.newmaps=1&num=8&sat.timelabel=1&sat.timelabel.y=14&sat.timelabel.x=200")           # GIF downloaden
                     print "erfolgreich"
                 except IOError:
                     filenameG = './fehler.pgm'
@@ -504,7 +505,16 @@ def jetzt():
              buttonText += ' Alarm'
         else:
             buttonText += ' Alarme'
-        buttonAlarm.config(text=buttonText, bg="grey", command=alarmText)
+        buttonAlarm.config(text=buttonText, bg="grey", fg="black", command=alarmText)
+        for i in json['alerts']:
+            if i['level_meteoalarm_name'] == 'Yellow':
+                buttonAlarm.config(text=buttonText, bg="yellow", fg="black", command=alarmText)
+        for i in json['alerts']:
+            if i['level_meteoalarm_name'] == 'Orange':
+                buttonAlarm.config(text=buttonText, bg="orange", fg="black", command=alarmText)
+        for i in json['alerts']:
+            if i['level_meteoalarm_name'] == 'Red':
+                buttonAlarm.config(text=buttonText, bg="red", fg="black", command=alarmText)
     else:
         #buttonAlarm.config(text='Alarm', bg="yellow", fg="black", command=alarmText)
         buttonAlarm.config(text='', bg='white', command = jetzt)
@@ -614,10 +624,9 @@ buttonRadarPrev.place(x = 0  , y =   0, width =  0, height =  0)
 buttonAlarm.place(    x = 400, y = 178, width = 80, height = 48)
 buttonExit.place(     x = 460, y = 0,   width = 20, height = 20)
 
-# starte Zeitloop in einem weiteren thread
-
-print 'Starte Zeit- und Fensterprozess'
+#starte Zeitloop in einem weiteren thread
 process.start()
+print '\nStarte Fensterprozess'
 window.mainloop()
 print 'Beende Anzeige'
 
