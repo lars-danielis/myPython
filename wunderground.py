@@ -177,7 +177,7 @@ def ZeitLoop():
                 try:
                     imgG = PhotoImage(file = filenameG)
                     print "erfolgreich"
-                except TclError:
+                except:
                     filenameG = './fehler.pgm'
                     imgG = PhotoImage(file = filenameG)
                     print "kaputtes GIF entdeckt"
