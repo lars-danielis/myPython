@@ -11,21 +11,23 @@ import os
 from Tkinter import *
 import threading
 from PIL import Image, ImageTk
+import commands
 import sys
 #rpi
-import Adafruit_DHT
+
+processors = commands.getoutput("grep -c processor /proc/cpuinfo")
+
+if processors < 3:
+    import Adafruit_DHT
 
 BGCOLOR = "white"
 SCHRIFT = "FreeSans"
 WEISS   = "#FFF"
 #rpi
-#SCHRIFTGROESSE = 10 #dell
-SCHRIFTGROESSE = 13 #asus und r-pi
-
-#        self.config(image=self.frames[self.idx])
-#        self.idx += 1
-#        if self.idx == len(self.frames):
-#            self.idx = 0
+if processors > 3:
+    SCHRIFTGROESSE = 10 #dell
+else:
+    SCHRIFTGROESSE = 13 #asus und r-pi
 
 class myThread(threading.Thread):
     def __init__(self, threadID, name):
@@ -89,7 +91,7 @@ def alarmText():
     T3I.place(x = 330, y = 253, width = 0,  height = 0 )
     T0.place( x = 0,   y = 130, width = 0, height = 0)
     Tj.place( x = 0,   y = 0,   width = 481, height = 226)
-    buttonAlarm.config(bg="grey", fg="black", command=alarmText)
+    buttonAlarm.config(bg="lightgrey", fg="black", command=alarmText)
     buttonAlarm.place(x = 320, y = 225, width = 161, height = 97)
     buttonRadar.place(x = 400, y = 130, width = 0,   height = 0 )
     ablaufText = strftime("%A %H:%M Uhr", strptime(json['alerts'][nummer]['expires'],'%Y-%m-%d %H:%M:%S %Z'))
@@ -120,7 +122,7 @@ def radar():
         gNummer = len(frames)-1
     anzeigeRadar = 1
     warte = 60
-    print "zeige GIF"
+    print "zeige GIF",gNummer
     Tj.delete(1.0, END)
     TG.delete(1.0, END)
     TjI.place(x = 25,  y = 50,  width = 0, height = 0)
@@ -135,8 +137,14 @@ def radar():
     buttonAlarm.place(x = 400, y = 178, width = 0, height = 0)
     buttonRadar.config(text='Zurück', command=beendeRadar)
     buttonRadar.place(    x = 160, y = 289, width = 161, height = 31)
-    buttonRadarNext.place(x = 320, y = 289, width = 161, height = 31)
-    buttonRadarPrev.place(x =   0, y = 289, width = 161, height = 31)
+    if gNummer == len(frames)-1:
+        buttonRadarNext.place(x = 320, y = 289, width = 0, height = 0)
+    else:
+        buttonRadarNext.place(x = 320, y = 289, width = 161, height = 31)
+    if gNummer == 0:
+        buttonRadarPrev.place(x =   0, y = 289, width = 0, height = 0)
+    else:
+        buttonRadarPrev.place(x =   0, y = 289, width = 161, height = 31)
 
 
 # Funktion um entweder einmalig zum Testen (mitLoop = 0) per Funktionsaufruf benutzt zu werden, oder mitLoop = 1
@@ -149,7 +157,7 @@ def ZeitLoop():
 
         # aktuelle Zeit holen und prüfen ob die websites neu abgefragt werden sollen - alle 20min bzw. 1200s
         t = mktime(localtime())
-        if (t - tl) > 1200:
+        if (t - tl) > 1800:
             tl = t
 
             # Wunderground JSON-Daten holen
@@ -157,8 +165,10 @@ def ZeitLoop():
             try:
                 jsonRaw = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/conditions/forecast/astronomy/alerts/lang:DL/pws:1/q/pws:ibadenwr274.json")
                 #rpi
-                #json = jsonRaw.json()
-                json = jsonRaw.json
+                if processors > 1:
+                    json = jsonRaw.json()
+                else:
+                    json = jsonRaw.json
                 print "erfolgreich"
 
                 # alte Icons löschen
@@ -168,18 +178,20 @@ def ZeitLoop():
 
                 print "versuche GIF zu holen ...",
                 try:
-                    filenameG = wget.download("http://api.wunderground.com/api/edc8d609ba28e7c2/animatedradar/animatedsatellite/lang:DL/q/eislingen.gif?sat.width=480&sat.height=290&rad.width=480&rad.height=290&delay=100&sat.interval=30&rad.smooth=1&sat.key=sat_ir4&sat.smooth=1&sat.borders=1&sat.basemap=1&sat.gtt=107&rad.newmaps=1&num=8&sat.timelabel=1&sat.timelabel.y=14&sat.timelabel.x=200")           # GIF downloaden
+                    filenameG = wget.download("http://api.wunderground.com/api/edc8d609ba28e7c2/animatedradar/animatedsatellite/lang:DL/q/eislingen.gif?sat.width=480&sat.height=290&rad.width=480&rad.height=290&num=8&delay=100&interval=20&rad.smooth=1&sat.key=sat_ir4&sat.smooth=1&sat.borders=1&sat.basemap=1&sat.gtt=107&rad.newmaps=1&sat.timelabel=1&sat.timelabel.y=14&sat.timelabel.x=200")           # GIF downloaden
                     print "erfolgreich"
                 except IOError:
                     filenameG = './fehler.pgm'
                     print "keine Verbindung"
                 print "versuche GIF zu lesen ...",
+                frames = []
                 try:
                     imgG = PhotoImage(file = filenameG)
                     print "erfolgreich"
                 except:
                     filenameG = './fehler.pgm'
                     imgG = PhotoImage(file = filenameG)
+                    frames.append(imgG)
                     print "kaputtes GIF entdeckt"
                 im = Image.open(filenameG)
                 seq =  []
@@ -433,10 +445,12 @@ def jetzt():
     buttonRadar.place(    x = 400, y = 130, width = 80, height = 49)
     buttonRadarNext.place(x =   0, y =   0, width =  0, height =  0)
     buttonRadarPrev.place(x =   0, y =   0, width =  0, height =  0)
-    buttonRadar.config(text='Radar', command=radar)
+    buttonRadar.config(bg='lightgrey', text='Radar', command=radar)
     #rpi
-    feuchteInnen, temperaturInnen = Adafruit_DHT.read_retry(Adafruit_DHT.AM2302,26)
-    #feuchteInnen = 0.0; temperaturInnen = 0.0
+    if processors > 1:
+        feuchteInnen = 0.0; temperaturInnen = 0.0
+    else:
+        feuchteInnen, temperaturInnen = Adafruit_DHT.read_retry(Adafruit_DHT.AM2302,26)
     if feuchteInnen is None and temperaturInnen is None:
         feuchteInnen = 0.0; temperaturInnen = 0.0
     Tj.delete(1.0, END)
@@ -505,7 +519,7 @@ def jetzt():
              buttonText += ' Alarm'
         else:
             buttonText += ' Alarme'
-        buttonAlarm.config(text=buttonText, bg="grey", fg="black", command=alarmText)
+        buttonAlarm.config(text=buttonText, bg="lightgrey", fg="black", command=alarmText)
         for i in json['alerts']:
             if i['level_meteoalarm_name'] == 'Yellow':
                 buttonAlarm.config(text=buttonText, bg="yellow", fg="black", command=alarmText)
@@ -614,9 +628,9 @@ TG.place( x = 0,   y = 0,   width = 0,   height = 0  )
 # Knöpfe
 print u'Knoepfe einbauen'
 buttonAlarm =     Button(master=window, text='',       bg="white", fg="white",     relief='flat', command=jetzt  )
-buttonRadar =     Button(master=window, text='Radar',  bg="white", fg="black",     relief='flat', command=radar  )
-buttonRadarNext = Button(master=window, text='-->',    bg="white", fg="black",     relief='flat', command=nextGif)
-buttonRadarPrev = Button(master=window, text='<--', bg="white", fg="black",     relief='flat', command=prevGif)
+buttonRadar =     Button(master=window, text='Radar',  bg="lightgrey",  fg="black",     relief='flat', command=radar  )
+buttonRadarNext = Button(master=window, text='-->',    bg="lightgrey",  fg="black",     relief='flat', command=nextGif)
+buttonRadarPrev = Button(master=window, text='<--',    bg="lightgrey",  fg="black",     relief='flat', command=prevGif)
 buttonExit  =     Button(master=window, text="X",      bg=BGCOLOR, fg="lightgrey", relief='flat', command=beenden)
 buttonRadar.place(    x = 400, y = 130, width = 80, height = 49)
 buttonRadarNext.place(x = 0  , y =   0, width =  0, height =  0)
