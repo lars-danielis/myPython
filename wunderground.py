@@ -16,18 +16,14 @@ import sys
 #rpi
 
 processors = commands.getoutput("grep -c processor /proc/cpuinfo")
-
-if processors < 3:
-    import Adafruit_DHT
+print "proc=",processors
+import Adafruit_DHT
 
 BGCOLOR = "white"
 SCHRIFT = "FreeSans"
 WEISS   = "#FFF"
 #rpi
-if processors > 3:
-    SCHRIFTGROESSE = 10 #dell
-else:
-    SCHRIFTGROESSE = 13 #asus und r-pi
+SCHRIFTGROESSE = 13 #asus und r-pi
 
 class myThread(threading.Thread):
     def __init__(self, threadID, name):
@@ -166,7 +162,7 @@ def ZeitLoop():
                 jsonRaw = requests.get("http://api.wunderground.com/api/edc8d609ba28e7c2/conditions/forecast/astronomy/alerts/lang:DL/pws:1/q/pws:ibadenwr274.json")
                 #rpi
                 if processors > 1:
-                    json = jsonRaw.json()
+                    json = jsonRaw.json
                 else:
                     json = jsonRaw.json
                 print "erfolgreich"
@@ -447,15 +443,16 @@ def jetzt():
     buttonRadarPrev.place(x =   0, y =   0, width =  0, height =  0)
     buttonRadar.config(bg='lightgrey', text='Radar', command=radar)
     #rpi
-    if processors > 1:
-        feuchteInnen = 0.0; temperaturInnen = 0.0
-    else:
-        feuchteInnen, temperaturInnen = Adafruit_DHT.read_retry(Adafruit_DHT.AM2302,26)
+    feuchteInnen, temperaturInnen = Adafruit_DHT.read_retry(Adafruit_DHT.AM2302,26)
     if feuchteInnen is None and temperaturInnen is None:
         feuchteInnen = 0.0; temperaturInnen = 0.0
     Tj.delete(1.0, END)
     Tj.insert(INSERT, 'Aktuelles Wetter ', 'ueberschrift')
-    Tj.insert(END, TjWTag + ' vor ' + str(int((t-tj)/60)) +' Minuten aktualisiert\n', 'zusatz')
+    if ((t-tj) < 0): #während der Sommerzeit?
+        vergangen = (t-tj)/60 + 60
+    else:
+        vergangen = (t-tj)/60
+    Tj.insert(END, TjWTag + ' vor ' + str(int(vergangen)) +' Minuten aktualisiert\n', 'zusatz')
 
     Tj.insert(END, ' \n', 'leer')
 
